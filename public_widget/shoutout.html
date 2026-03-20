@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOM26 Shout Out</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'AvenirBlack';
+      src: url('./assets/Fonts/avenir-black/avenir-black.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'TradeGothicBoldCondensed';
+      src: url('./assets/Fonts/trade-gothic-bold-condensed-no-20/trade-gothic-bold-condensed-no-20.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      padding: 0 10px;
+    }
+
+    /* ── Widget shell ─────────────────────────────────────────────────────────
+       Transparent — sits directly over whatever the iframe is placed on top of.
+       Column flex so the "SHOUT OUT!" label sits above the carousel.
+    ──────────────────────────────────────────────────────────────────────── */
+    .shoutout-widget {
+      background: transparent;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 82px;
+      gap: 4px;
+      padding: 0 1.2rem;
+    }
+
+    /* Centred label above the carousel */
+    .shoutout-header {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 0.58rem;
+      font-weight: normal;
+      letter-spacing: 2.2px;
+      text-transform: uppercase;
+      opacity: 0.82;
+      text-align: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Carousel viewport ────────────────────────────────────────────────── */
+    .carousel-viewport {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      height: 50px;
+    }
+
+    /* Empty-state message (shown when entries array is empty) */
+    .shoutout-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      opacity: 0.65;
+      font-style: italic;
+      text-align: center;
+      padding: 0 0.5rem;
+    }
+
+    /* ── Carousel slots ───────────────────────────────────────────────────────
+       4-slot pool: exit / prev / curr / next.
+       Each slot stacks .c-name above .c-type in a column layout.
+       Opacity transitions smoothly between positions via the .animating class:
+         next (0.4) → curr (1.0) → prev (0.4) → exit (0)
+    ──────────────────────────────────────────────────────────────────────── */
+    .c-slot {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 33.33%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.5em;
+      overflow: hidden;
+      will-change: left, opacity, transform;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .c-slot.animating {
+      transition: left      0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity   0.45s ease,
+                  transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Named position states */
+    .c-slot[data-pos="exit"]  { left: -33.34%; opacity: 0;   transform: scale(0.72); }
+    .c-slot[data-pos="prev"]  { left:   0%;    opacity: 0.4; transform: scale(0.88); }
+    .c-slot[data-pos="curr"]  { left:  33.33%; opacity: 1;   transform: scale(1);    }
+    .c-slot[data-pos="next"]  { left:  66.66%; opacity: 0.4; transform: scale(0.88); }
+    .c-slot[data-pos="enter"] { left: 100%;    opacity: 0;   transform: scale(0.72); }
+
+    /* Name line */
+    .c-name {
+      font-family: 'TradeGothicBoldCondensed', sans-serif;
+      font-size: 0.88rem;
+      font-weight: normal;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      line-height: 1.25;
+    }
+
+    .c-slot[data-pos="curr"] .c-name {
+      font-weight: normal;
+    }
+
+    /* Type line — sits below the name, slightly dimmer */
+    .c-type {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 0.68rem;
+      font-weight: normal;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      opacity: 0.72;
+      text-transform: capitalize;
+      line-height: 1.25;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shoutout-widget">
+    <div class="shoutout-header">Shout Out!</div>
+
+    <div class="carousel-viewport" id="carousel-viewport">
+      <div class="shoutout-empty" id="shoutout-empty">
+        Sign up as a school, organisation or community group to appear here!
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./shoutout-widget.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Background (matches token-box gradient; remove if embedding in a coloured container) -->
+  <rect width="48" height="48" rx="10" fill="#1565C0"/>
+
+  <!-- Bowl of Hummus — Box 5 -->
+  <!-- Bowl body (cubic bezier curve) -->
+  <path d="M4 22 C4 39 12 45 24 45 C36 45 44 39 44 22 Z"
+        fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+  <!-- Rim ellipse -->
+  <ellipse cx="24" cy="22" rx="20" ry="5"
+           fill="rgba(255,255,255,0.35)" stroke="white" stroke-width="2"/>
+  <!-- Hummus surface -->
+  <ellipse cx="24" cy="25" rx="13" ry="3" fill="rgba(255,255,255,0.6)"/>
+  <!-- Swirl -->
+  <path d="M24 25 C20 25 18 22 20 20 C22 18 26 19 27 22"
+        stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-opacity="0.8"/>
+  <!-- Olive -->
+  <ellipse cx="30" cy="23" rx="3" ry="2" fill="white"/>
+  <!-- Paprika dot -->
+  <circle cx="19" cy="24" r="1.5" fill="white" fill-opacity="0.9"/>
+</svg>

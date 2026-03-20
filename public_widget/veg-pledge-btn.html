@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOM26 Veg Pledge Button</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'TradeGothicBoldCondensed';
+      src: url('./assets/Fonts/trade-gothic-bold-condensed-no-20/trade-gothic-bold-condensed-no-20.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Both html and body must clip overflow so the document height always
+       matches the scaled height, with no extra whitespace below. */
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    /* ── Scale root ───────────────────────────────────────────────────────
+       Acts as the visible "viewport" for the widget.
+       JS sets its height to the scaled design height.
+    ─────────────────────────────────────────────────────────────────── */
+    #btn-scale-root {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      /* height set by JS */
+    }
+
+    /* ── Button container ─────────────────────────────────────────────────
+       Exact design space: 1284 × 78 px (58 px button + 10 px padding top/bottom).
+       position:absolute removes it from normal flow — see patch.html for
+       the full explanation of why this prevents the "empty space below" bug.
+    ─────────────────────────────────────────────────────────────────── */
+    .btn-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1284px;
+      height: 78px;          /* 58px button + 10px top + 10px bottom */
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 10px;    /* 10px side padding matches patch/shoutout widgets */
+      transform-origin: top left;
+      /* transform and left set by JS */
+    }
+
+    /* ── The button ───────────────────────────────────────────────────────
+       380 × 58 px, 29 px border-radius (pill shape).
+       Text size unchanged — only the box is smaller.
+    ─────────────────────────────────────────────────────────────────── */
+    .pledge-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 380px;
+      height: 58px;
+      border-radius: 29px;
+      background: #027f7e;
+      color: #ffffff;
+      font-family: 'TradeGothicBoldCondensed', sans-serif;
+      font-size: 22px;
+      font-weight: normal;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 1px 4px 4px 0px rgba(6, 57, 65, 0.5);
+      transition: filter 0.15s ease, transform 0.1s ease;
+      white-space: nowrap;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .pledge-btn:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+    }
+
+    .pledge-btn:active {
+      filter: brightness(0.96);
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="btn-scale-root">
+    <div class="btn-container">
+      <!-- Update href to the live sign-up / pledge form URL when ready -->
+      <a class="pledge-btn" href="#" title="Make Your Veg Pledge">
+        MAKE YOUR VEG PLEDGE!
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Responsive scaling ───────────────────────────────────────────────────
+       The widget is designed at 1284 × 95 px. This script scales the whole
+       .btn-container uniformly to fill whatever width the iframe is given,
+       with 10 px of transparent padding on each side (matching the patch and
+       shoutout widgets). The parent page receives a BTN_HEIGHT postMessage
+       so the <iframe> can be resized to exactly fit the scaled height.
+  ──────────────────────────────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      var DESIGN_W = 1284;
+      var DESIGN_H = 78;
+      var PADDING  = 10;   // px of transparent space on each side
+
+      function scaleWidget() {
+        var el   = document.querySelector('.btn-container');
+        var root = document.getElementById('btn-scale-root');
+        if (!el || !root) return;
+
+        var scale   = (window.innerWidth - 2 * PADDING) / DESIGN_W;
+        var scaledH = Math.ceil(DESIGN_H * scale);
+
+        el.style.left      = PADDING + 'px';
+        el.style.transform = 'scale(' + scale + ')';
+
+        // Set the root wrapper — and both html and body — to the scaled height
+        root.style.height                     = scaledH + 'px';
+        document.body.style.height            = scaledH + 'px';
+        document.documentElement.style.height = scaledH + 'px';
+
+        // Notify the parent page so it can resize the <iframe> element.
+        try { window.parent.postMessage({ type: 'BTN_HEIGHT', height: scaledH }, '*'); } catch (e) {}
+      }
+
+      window.addEventListener('resize', scaleWidget);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scaleWidget);
+      } else {
+        scaleWidget();
+      }
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Background (matches token-box gradient; remove if embedding in a coloured container) -->
+  <rect width="48" height="48" rx="10" fill="#1565C0"/>
+
+  <!-- Cooking Pot — Box 4 -->
+  <!-- Steam wisps -->
+  <path d="M18 12 Q17 9 18 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.8" fill="none"/>
+  <path d="M24 11 Q23 8 24 5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.8" fill="none"/>
+  <path d="M30 12 Q29 9 30 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.8" fill="none"/>
+  <!-- Lid dome -->
+  <path d="M7 26 Q7 18 24 18 Q41 18 41 26 Z"
+        fill="rgba(255,255,255,0.35)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Lid knob -->
+  <circle cx="24" cy="18" r="3.5" fill="white"/>
+  <!-- Pot body -->
+  <path d="M9 26 L9 42 Q9 44 11 44 L37 44 Q39 44 39 42 L39 26 Z"
+        fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Left handle -->
+  <path d="M9 30 L5 30 Q3 30 3 33 L3 36 Q3 39 5 39 L9 39"
+        stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Right handle -->
+  <path d="M39 30 L43 30 Q45 30 45 33 L45 36 Q45 39 43 39 L39 39"
+        stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

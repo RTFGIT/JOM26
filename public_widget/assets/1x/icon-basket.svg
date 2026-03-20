@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Background (matches token-box gradient; remove if embedding in a coloured container) -->
+  <rect width="48" height="48" rx="10" fill="#1565C0"/>
+
+  <!-- Shopping Basket — Box 1 -->
+  <!-- Handle arc -->
+  <path d="M15 21 C15 12 33 12 33 21" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Basket body with wicker grid -->
+  <rect x="7" y="21" width="34" height="22" rx="2" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+  <!-- Horizontal weave lines -->
+  <line x1="8"  y1="29" x2="40" y2="29" stroke="white" stroke-width="1.5" stroke-opacity="0.7"/>
+  <line x1="8"  y1="37" x2="40" y2="37" stroke="white" stroke-width="1.5" stroke-opacity="0.7"/>
+  <!-- Vertical weave lines -->
+  <line x1="18" y1="21" x2="18" y2="43" stroke="white" stroke-width="1.5" stroke-opacity="0.7"/>
+  <line x1="24" y1="21" x2="24" y2="43" stroke="white" stroke-width="1.5" stroke-opacity="0.7"/>
+  <line x1="30" y1="21" x2="30" y2="43" stroke="white" stroke-width="1.5" stroke-opacity="0.7"/>
+</svg>

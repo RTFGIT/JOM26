@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOM26 Token Collection</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'AvenirBlack';
+      src: url('./assets/Fonts/avenir-black/avenir-black.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Both html and body must clip overflow so the document height always
+       matches the scaled height, with no extra whitespace below. */
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      /* height is set by JS to the scaled height */
+    }
+
+    /* ── Scale root ───────────────────────────────────────────────────────
+       Acts as the visible "viewport" for the widget. JS sets its height to
+       the scaled design height so it always matches what is visually painted.
+       overflow:hidden clips the .boxes-container's 374 px layout box when
+       scaled down; when scaled up, JS sets the root taller than 374 px so
+       there is no empty gap below the visually expanded widget.
+    ─────────────────────────────────────────────────────────────────── */
+    #patch-scale-root {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      /* height set by JS */
+    }
+
+    /* ── Widget container ────────────────────────────────────────────────
+       Exact spec: 1284 × 514 px, transparent.
+       position:absolute removes it from normal flow so its fixed 514 px
+       layout height never pushes the #patch-scale-root open, preventing
+       the "empty space below" bug when scale > 1.
+       padding-top  = sky depth (331 px) — tokens fall through this space.
+       padding-bottom = shadow room (10 px).
+       Using padding (not margin on child) prevents CSS margin-collapse.
+       Content area = 514 − 331 − 10 = 173 px = exact box height.
+       Canvas at position:absolute; top:0 anchors to y=0, covering all 514 px.
+    ─────────────────────────────────────────────────────────────────── */
+    .boxes-container {
+      position: absolute;  /* out of flow — root height is set by JS */
+      top: 0;
+      left: 0;
+      width: 1284px;
+      height: 514px;
+      background: transparent;
+      padding-top: 331px;
+      padding-bottom: 10px;
+      overflow: visible;
+      transform-origin: top left; /* scale anchor — JS sets transform:scale() */
+    }
+
+    /* Canvas — z-index 2, above everything so it always renders.
+       Token drawing is gated in JS: tokens are only drawn while y < 210
+       (sky+20 px into box face), so they vanish as if entering the box. */
+    #tokenCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── Boxes row ───────────────────────────────────────────────────────
+       No margin-top needed — the sky depth is provided by padding-top
+       on .boxes-container (191 px), which cannot margin-collapse.
+       space-between on 1284 px with 5 × 156 px items ≈ 126 px gaps.
+    ─────────────────────────────────────────────────────────────────── */
+    .boxes-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      width: 100%;
+    }
+
+    /* Wrapper — applies the combined drop-shadow to both rectangles.
+       Shadow spec: colour #063941 50%, angle ~99°, distance 4, blur 4. */
+    .box-wrapper {
+      display: flex;
+      flex-direction: column;
+      width: 156px;
+      border-radius: 14px;
+      box-shadow: 1px 4px 4px 0px rgba(6, 57, 65, 0.5);
+    }
+
+    /* Rectangle 1 — 156 × 113 px, gradient per box, rounded top corners.
+       Icon sits centred horizontally, just below vertical centre (pad-top). */
+    .token-box {
+      width: 156px;
+      height: 113px;
+      border-radius: 14px 14px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Per-box gradients at 137° */
+    .token-box[data-box="1"] { background: linear-gradient(137deg, #ffd342 0%, #ffbf42 100%); }
+    .token-box[data-box="2"] { background: linear-gradient(137deg, #eb8f05 0%, #c35b0f 100%); }
+    .token-box[data-box="3"] { background: linear-gradient(137deg, #50d867 0%, #39b04d 100%); }
+    .token-box[data-box="4"] { background: linear-gradient(137deg, #39b083 0%, #1d9064 100%); }
+    .token-box[data-box="5"] { background: linear-gradient(137deg, #075966 0%, #063941 100%); }
+
+    /* Icon — 90 × 90 px, contained within the gradient rectangle */
+    .box-icon {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Rectangle 2 — 156 × 60 px white counter, rounded bottom corners */
+    .box-counter {
+      width: 156px;
+      height: 60px;
+      background: #ffffff;
+      border-radius: 0 0 14px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .counter-value {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 33pt;
+      font-weight: normal;
+      color: #063941;
+      line-height: 1;
+    }
+
+    /* ── Box jiggle animation — triggered when a token lands ──────────────
+       Mixes squash/stretch, rotation, and horizontal translation for a
+       cartoony "something just dropped in" jitter effect.
+    ─────────────────────────────────────────────────────────────────── */
+    @keyframes boxJiggle {
+      0%   { transform: scaleX(1)    scaleY(1)    rotate(0deg)    translateX(0);      }
+      8%   { transform: scaleX(1.14) scaleY(0.86) rotate(-2deg)   translateX(-3px);   } /* big squash + tilt left  */
+      18%  { transform: scaleX(0.90) scaleY(1.12) rotate(2.5deg)  translateX(4px);    } /* stretch + tilt right    */
+      28%  { transform: scaleX(1.10) scaleY(0.91) rotate(-1.8deg) translateX(-3px);   } /* squash + tilt left      */
+      38%  { transform: scaleX(0.94) scaleY(1.07) rotate(1.5deg)  translateX(2px);    } /* stretch + tilt right    */
+      48%  { transform: scaleX(1.06) scaleY(0.95) rotate(-1deg)   translateX(-2px);   } /* smaller squash          */
+      58%  { transform: scaleX(0.97) scaleY(1.04) rotate(0.8deg)  translateX(1.5px);  } /* smaller stretch         */
+      68%  { transform: scaleX(1.03) scaleY(0.97) rotate(-0.5deg) translateX(-1px);   } /* settling squash         */
+      78%  { transform: scaleX(0.99) scaleY(1.02) rotate(0.3deg)  translateX(0.5px);  } /* settling stretch        */
+      88%  { transform: scaleX(1.01) scaleY(0.99) rotate(-0.1deg) translateX(-0.3px); } /* almost still            */
+      100% { transform: scaleX(1)    scaleY(1)    rotate(0deg)    translateX(0);      } /* rest                    */
+    }
+
+    .box-wrapper {
+      transform-origin: bottom center; /* squash from the base */
+    }
+
+    .box-wrapper.bouncing {
+      animation: boxJiggle 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* ── JOM logo — backmost layer in the sky area ───────────────────────── */
+    #jom-logo {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 200px;
+      width: auto;
+      z-index: 0;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- ── Scale root ────────────────────────────────────────────────────────
+       JS sets this element's height to the scaled design height so the
+       document always exactly matches the visible widget — no empty space.
+  ─────────────────────────────────────────────────────────────────────── -->
+  <div id="patch-scale-root">
+
+    <div class="boxes-container">
+
+      <!-- JOM logo — backmost layer (z-index:0), sits in the sky area behind tokens -->
+      <img id="jom-logo" src="assets/Just-One-More-logo Transparent.png" alt="Just One More">
+
+      <!-- Canvas — above the boxes (z-index:2); renders falling veggie tokens -->
+      <canvas id="tokenCanvas"></canvas>
+
+      <!-- Five token collection boxes -->
+      <div class="boxes-row">
+        <div class="box-wrapper">
+          <div class="token-box" data-box="1">
+            <img class="box-icon" src="assets/Box 1 - Shopping Basket.png" alt="Shopping Basket">
+          </div>
+          <div class="box-counter">
+            <div class="counter-value" id="box1-count">0</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="2">
+            <img class="box-icon" src="assets/Box 2 - Garden.png" alt="Garden">
+          </div>
+          <div class="box-counter">
+            <div class="counter-value" id="box2-count">0</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="3">
+            <img class="box-icon" src="assets/Box 3 - On your Plate.png" alt="On your Plate">
+          </div>
+          <div class="box-counter">
+            <div class="counter-value" id="box3-count">0</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="4">
+            <img class="box-icon" src="assets/Box 4 - As your meal.png" alt="As your meal">
+          </div>
+          <div class="box-counter">
+            <div class="counter-value" id="box4-count">0</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="5">
+            <img class="box-icon" src="assets/Box 5 - As a Snack.png" alt="As a Snack">
+          </div>
+          <div class="box-counter">
+            <div class="counter-value" id="box5-count">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden — kept for Firestore sync compatibility -->
+      <div id="total-tokens" style="display:none">0</div>
+
+    </div><!-- /.boxes-container -->
+
+  </div><!-- /#patch-scale-root -->
+
+  <script src="token-boxes-standalone.js"></script>
+  <script src="patch-widget-app.js"></script>
+
+  <!-- ── Responsive scaling ─────────────────────────────────────────────────
+       The widget is designed at 1284 × 374 px. This script scales the whole
+       .boxes-container uniformly to fill whatever width the iframe is given.
+
+       Why #patch-scale-root + position:absolute on .boxes-container?
+       CSS transform:scale() changes visual size but NOT layout footprint.
+       If the container stays in normal flow at 374 px layout height and we
+       set body.height = scaledH (e.g. 514 px at scale>1), there would be
+       (514−374) = 140 px of empty layout space below the visible widget.
+       Making .boxes-container position:absolute removes it from normal flow.
+       JS then sets #patch-scale-root's height to exactly scaledH so the
+       document height always matches the visible widget — no empty gap.
+
+       All internal canvas coordinates stay in design space (1284×374 px).
+       Only the CSS transform changes.
+  ──────────────────────────────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      var DESIGN_W = 1284;
+      var DESIGN_H = 514;
+      var PADDING  = 10;   // px of transparent space on each side for drop-shadow
+
+      function scaleWidget() {
+        var el   = document.querySelector('.boxes-container');
+        var root = document.getElementById('patch-scale-root');
+        if (!el || !root) return;
+
+        var scale   = (window.innerWidth - 2 * PADDING) / DESIGN_W;
+        var scaledH = Math.ceil(DESIGN_H * scale);
+
+        el.style.left      = PADDING + 'px';
+        el.style.transform = 'scale(' + scale + ')';
+
+        // Set the root wrapper — and both html and body — to the scaled height
+        // so the document has no excess space in any browser.
+        root.style.height                    = scaledH + 'px';
+        document.body.style.height           = scaledH + 'px';
+        document.documentElement.style.height = scaledH + 'px';
+
+        // Notify the parent page so it can resize the <iframe> element.
+        try { window.parent.postMessage({ type: 'PATCH_HEIGHT', height: scaledH }, '*'); } catch (e) {}
+      }
+
+      window.addEventListener('resize', scaleWidget);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scaleWidget);
+      } else {
+        scaleWidget();
+      }
+    })();
+  </script>
+
+  <script type="module" src="./widget-config.js"></script>
+  <script type="module">
+    import { startBoxTotaliserListener, startCelebrationConfigListener } from './patch-widget-listener.js';
+
+    function updateBoxesUI({ boxCounts, total, isUpdate, delta }) {
+      const hasAnimation = isUpdate && delta && window.tokenBoxes &&
+          typeof window.tokenBoxes.triggerAnimationFromFirestore === 'function' &&
+          Object.keys(delta).length > 0;
+
+      if (hasAnimation) {
+        // Tokens will be animated — DON'T update DOM counters yet.
+        // _tickCounter() will increment +1 as each token lands, counting up
+        // from the current (old) DOM values to the correct new totals.
+        // Just update internal boxState so it stays in sync with Firestore.
+        if (window.JOM26TokenBoxes && typeof window.JOM26TokenBoxes.syncStateOnly === 'function') {
+          window.JOM26TokenBoxes.syncStateOnly(boxCounts, total);
+        }
+        for (const [boxNum, amount] of Object.entries(delta)) {
+          window.tokenBoxes.triggerAnimationFromFirestore(parseInt(boxNum), amount);
+        }
+      } else {
+        // No new tokens — but check if tokens are still in flight from a
+        // previous burst (e.g. Firestore server-confirm snapshot arriving
+        // while _tickCounter is still incrementing).  If so, only sync
+        // internal state to avoid overwriting the DOM mid-animation which
+        // causes the counter to double-count.
+        const tokensInFlight = window.tokenBoxes && window.tokenBoxes.fallingTokens &&
+            window.tokenBoxes.fallingTokens.some(t => !t.celebrationType);
+
+        if (tokensInFlight && window.JOM26TokenBoxes && typeof window.JOM26TokenBoxes.syncStateOnly === 'function') {
+          window.JOM26TokenBoxes.syncStateOnly(boxCounts, total);
+        } else if (window.JOM26TokenBoxes && typeof window.JOM26TokenBoxes.syncFromFirestore === 'function') {
+          window.JOM26TokenBoxes.syncFromFirestore(boxCounts, total);
+        } else {
+          for (let i = 1; i <= 5; i++) {
+            const el = document.getElementById(`box${i}-count`);
+            if (el) el.innerText = (boxCounts[i] || 0).toLocaleString();
+          }
+          const totalEl = document.getElementById('total-tokens');
+          if (totalEl) totalEl.innerText = total.toLocaleString();
+        }
+      }
+    }
+
+    startBoxTotaliserListener(updateBoxesUI);
+
+    // ── Celebration config — real-time sync from admin console ────────
+    startCelebrationConfigListener((config) => {
+      if (window.JOM26TokenBoxes && typeof window.JOM26TokenBoxes.setCelebrationConfig === 'function') {
+        window.JOM26TokenBoxes.setCelebrationConfig(config);
+      }
+    });
+  </script>
+</body>
+</html>
