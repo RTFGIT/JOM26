@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOM26 Admin Console</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F5F7FA;
+      color: #212121;
+      min-height: 100vh;
+    }
+
+    /* ── Login Screen ───────────────────────────────── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1565C0, #1976D2);
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    .login-card .logo { font-size: 3.5rem; margin-bottom: 1rem; }
+    .login-card h1 { color: #1565C0; font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .login-card p { color: #757575; margin-bottom: 2rem; line-height: 1.5; }
+
+    .login-error {
+      background: #FFEBEE;
+      color: #C62828;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    /* ── Dashboard ──────────────────────────────────── */
+    #dashboard-screen { display: none; }
+
+    .top-bar {
+      background: linear-gradient(135deg, #1565C0, #1976D2);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .top-bar h1 { font-size: 1.4rem; }
+    .top-bar .user-info { font-size: 0.9rem; opacity: 0.9; }
+    .top-bar-right { display: flex; align-items: center; gap: 1rem; }
+
+    .main-content { padding: 1.5rem 2rem; max-width: 1500px; margin: 0 auto; }
+
+    /* ── Stats ──────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.25rem 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+
+    .stat-card .stat-value { font-size: 1.9rem; font-weight: 700; color: #1565C0; }
+    .stat-card .stat-label {
+      font-size: 0.75rem;
+      color: #757575;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Toolbar ────────────────────────────────────── */
+    .toolbar {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .toolbar input[type="text"] {
+      padding: 0.6rem 0.9rem;
+      border: 2px solid #E0E0E0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .toolbar input[type="text"]:focus { outline: none; border-color: #1976D2; }
+
+    .toolbar select {
+      padding: 0.6rem 0.9rem;
+      border: 2px solid #E0E0E0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      background: white;
+    }
+
+    .toolbar select:focus { outline: none; border-color: #1976D2; }
+
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .toolbar-spacer { flex: 1; min-width: 1rem; }
+
+    /* ── Buttons ────────────────────────────────────── */
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: #1976D2; color: white; }
+    .btn-primary:hover { background: #1565C0; transform: translateY(-1px); }
+
+    .btn-success { background: #2E7D32; color: white; }
+    .btn-success:hover { background: #1B5E20; transform: translateY(-1px); }
+
+    .btn-outline { background: white; color: #1976D2; border: 2px solid #1976D2; }
+    .btn-outline:hover { background: #E3F2FD; }
+
+    .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+
+    /* ── Table ──────────────────────────────────────── */
+    .table-wrapper {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+
+    .table-header-row {
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid #EEEEEE;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .table-count { font-size: 0.9rem; color: #757575; }
+
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+    thead th {
+      background: #F5F7FA;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #616161;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      border-bottom: 2px solid #E0E0E0;
+    }
+
+    thead th:hover { background: #EEF2FF; color: #1565C0; }
+    thead th.sort-asc::after { content: ' ▲'; color: #1976D2; }
+    thead th.sort-desc::after { content: ' ▼'; color: #1976D2; }
+
+    tbody tr { border-bottom: 1px solid #F5F5F5; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #F8F9FF; }
+    tbody tr.duplicate-row { background: #FFF8E1; }
+    tbody tr.duplicate-row:hover { background: #FFF3CD; }
+
+    td { padding: 0.7rem 1rem; vertical-align: middle; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-yes { background: #E8F5E9; color: #2E7D32; }
+    .badge-no { background: #F5F5F5; color: #9E9E9E; }
+    .badge-box { background: #E3F2FD; color: #1565C0; font-weight: 600; }
+    .badge-dup { background: #FFF3E0; color: #E65100; font-size: 0.7rem; margin-left: 0.3rem; }
+
+    .type-chip {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: #EDE7F6;
+      color: #4527A0;
+      text-transform: capitalize;
+    }
+
+    .empty-state { text-align: center; padding: 3rem; color: #9E9E9E; }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+    /* ── Loading ────────────────────────────────────── */
+    .loading { text-align: center; padding: 3rem; color: #757575; }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 4px solid #E3F2FD;
+      border-top-color: #1976D2;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      .main-content { padding: 1rem; }
+      .top-bar { padding: 0.75rem 1rem; }
+      .top-bar h1 { font-size: 1.1rem; }
+      .toolbar-spacer { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="logo">🎯</div>
+      <h1>JOM26 Admin</h1>
+      <p>Sign in with your admin account to access the campaign dashboard and export submissions.</p>
+      <div class="login-error" id="login-error"></div>
+      <div class="form-group" style="text-align:left; margin-bottom:1rem;">
+        <label for="admin-email" style="display:block; font-size:0.9rem; color:#424242; margin-bottom:0.35rem; font-weight:500;">Email</label>
+        <input type="email" id="admin-email" placeholder="you@example.com"
+          style="width:100%; padding:0.7rem 0.9rem; border:2px solid #E0E0E0; border-radius:8px; font-size:1rem; font-family:inherit;">
+      </div>
+      <div class="form-group" style="text-align:left; margin-bottom:1.25rem;">
+        <label for="admin-password" style="display:block; font-size:0.9rem; color:#424242; margin-bottom:0.35rem; font-weight:500;">Password</label>
+        <input type="password" id="admin-password" placeholder="••••••••"
+          style="width:100%; padding:0.7rem 0.9rem; border:2px solid #E0E0E0; border-radius:8px; font-size:1rem; font-family:inherit;">
+      </div>
+      <button class="btn btn-primary" id="sign-in-btn"
+        style="width:100%; padding:0.85rem; font-size:1rem;">
+        Sign In
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-screen">
+
+    <div class="top-bar">
+      <h1>🎯 JOM26 Admin Console</h1>
+      <div class="top-bar-right">
+        <span class="user-info" id="user-email"></span>
+        <button class="btn btn-outline btn-sm" id="sign-out-btn">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- Stats row -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-submissions">—</div>
+          <div class="stat-label">Submissions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-tokens">—</div>
+          <div class="stat-label">Total Tokens</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-newsletter">—</div>
+          <div class="stat-label">Newsletter opt-ins</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-duplicates">—</div>
+          <div class="stat-label">Duplicate emails</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-box1">—</div>
+          <div class="stat-label">Box 1 Pledges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-box2">—</div>
+          <div class="stat-label">Box 2 Pledges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-box3">—</div>
+          <div class="stat-label">Box 3 Pledges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-box4">—</div>
+          <div class="stat-label">Box 4 Pledges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-box5">—</div>
+          <div class="stat-label">Box 5 Pledges</div>
+        </div>
+      </div>
+
+      <!-- Celebration Settings -->
+      <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
+        <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">🎉 Celebration Checkpoints</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center;">
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+            <input type="checkbox" id="mode1-enabled"> Per-Box Checkpoint
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem;">
+            Every
+            <input type="number" id="mode1-threshold" value="25" min="1"
+              style="width:70px; padding:0.4rem 0.5rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit; text-align:center;">
+            tokens per box
+          </label>
+          <span style="color:#E0E0E0; font-size:1.2rem;">|</span>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+            <input type="checkbox" id="mode2-enabled"> Total Token Checkpoint
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem;">
+            Every
+            <input type="number" id="mode2-threshold" value="100" min="1"
+              style="width:80px; padding:0.4rem 0.5rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit; text-align:center;">
+            total tokens
+          </label>
+          <button class="btn btn-primary btn-sm" id="save-celebration-btn">Save</button>
+          <span id="celebration-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
+        </div>
+      </div>
+
+      <!-- Pledge Options -->
+      <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
+        <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">📝 Pledge Options</h3>
+        <p style="font-size:0.85rem; color:#757575; margin-bottom:0.75rem;">
+          These options appear in the pledge dropdown for all user types. Changes are live once saved.
+        </p>
+        <div id="pledge-options-list" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.75rem;">
+          <!-- Dynamically populated -->
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <button class="btn btn-outline btn-sm" id="add-pledge-option-btn">+ Add Option</button>
+          <button class="btn btn-primary btn-sm" id="save-pledge-options-btn">Save Pledge Options</button>
+          <span id="pledge-options-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <input type="text" id="search-input" placeholder="Search name or email…">
+        <select id="filter-box">
+          <option value="">All Boxes</option>
+          <option value="1">Box 1</option>
+          <option value="2">Box 2</option>
+          <option value="3">Box 3</option>
+          <option value="4">Box 4</option>
+          <option value="5">Box 5</option>
+        </select>
+        <select id="filter-type">
+          <option value="">All Types</option>
+          <option value="individual">Individual</option>
+          <option value="family">Family</option>
+          <option value="school">School</option>
+          <option value="organisation">Organisation</option>
+          <option value="community">Community</option>
+          <option value="other">Other</option>
+        </select>
+        <label>
+          <input type="checkbox" id="filter-newsletter"> Newsletter only
+        </label>
+        <label>
+          <input type="checkbox" id="filter-dupes"> Duplicates only
+        </label>
+        <div class="toolbar-spacer"></div>
+        <button class="btn btn-outline" id="export-all-btn">⬇ Export All (CSV)</button>
+        <button class="btn btn-success" id="export-newsletter-btn">⬇ Newsletter CSV</button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <div class="table-header-row">
+          <span class="table-count" id="table-count">Loading…</span>
+          <button class="btn btn-outline btn-sm" id="refresh-btn">↻ Refresh</button>
+        </div>
+        <div id="table-body-wrapper">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading submissions…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="admin-app.js"></script>
+</body>
+</html>
