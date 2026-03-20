@@ -690,7 +690,7 @@ function scrollParentToTop() {
  * Displays a live countdown in #reset-countdown.
  */
 function startEndCardCountdown() {
-  var seconds = 15;
+  var seconds = 30;
   var countdownEl = document.getElementById('reset-countdown');
 
   // Clear any leftover timers from a previous submission
@@ -711,7 +711,7 @@ function startEndCardCountdown() {
     endCardCountdownInterval = null;
     widgetState.currentStep = 1;
     showStep(1);
-  }, 15000);
+  }, 30000);
 }
 
 // Listen for messages from veg patch widget
