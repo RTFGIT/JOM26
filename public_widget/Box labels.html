@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOM26 Box Labels</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'AvenirBlack';
+      src: url('./assets/Fonts/avenir-black/avenir-black.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    #labels-scale-root {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .labels-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1284px;
+      height: 65px;
+      background: transparent;
+      padding-bottom: 10px;
+      transform-origin: top left;
+    }
+
+    .boxes-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      height: 100%;
+    }
+
+    .box-wrapper {
+      display: flex;
+      flex-direction: column;
+      width: 156px;
+      border-radius: 14px;
+      box-shadow: 1px 4px 4px 0px rgba(6, 57, 65, 0.5);
+    }
+
+    .token-box {
+      width: 156px;
+      height: 55px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .token-box[data-box="1"] { background: linear-gradient(137deg, #ffd342 0%, #ffbf42 100%); }
+    .token-box[data-box="2"] { background: linear-gradient(137deg, #eb8f05 0%, #c35b0f 100%); }
+    .token-box[data-box="3"] { background: linear-gradient(137deg, #50d867 0%, #39b04d 100%); }
+    .token-box[data-box="4"] { background: linear-gradient(137deg, #39b083 0%, #1d9064 100%); }
+    .token-box[data-box="5"] { background: linear-gradient(137deg, #075966 0%, #063941 100%); }
+
+    .box-label {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 15.6px;
+      font-weight: normal;
+      color: #ffffff;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: pre-line;
+      padding-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="labels-scale-root">
+    <div class="labels-container">
+      <div class="boxes-row">
+        <div class="box-wrapper">
+          <div class="token-box" data-box="1">
+            <div class="box-label">IN YOUR
+BASKET</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="2">
+            <div class="box-label">IN YOUR
+GARDEN</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="3">
+            <div class="box-label">ON YOUR
+PLATE</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="4">
+            <div class="box-label">AS YOUR
+MEAL</div>
+          </div>
+        </div>
+        <div class="box-wrapper">
+          <div class="token-box" data-box="5">
+            <div class="box-label">AS YOUR
+SNACK</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Responsive scaling ─────────────────────────────────────────── -->
+  <script>
+    (function () {
+      var DESIGN_W = 1284;
+      var DESIGN_H = 65;
+      var PADDING  = 10;
+
+      function scaleWidget() {
+        var el   = document.querySelector('.labels-container');
+        var root = document.getElementById('labels-scale-root');
+        if (!el || !root) return;
+
+        var scale   = (window.innerWidth - 2 * PADDING) / DESIGN_W;
+        var scaledH = Math.ceil(DESIGN_H * scale);
+
+        el.style.left      = PADDING + 'px';
+        el.style.transform = 'scale(' + scale + ')';
+
+        root.style.height                    = scaledH + 'px';
+        document.body.style.height           = scaledH + 'px';
+        document.documentElement.style.height = scaledH + 'px';
+
+        try { window.parent.postMessage({ type: 'LABELS_HEIGHT', height: scaledH }, '*'); } catch (e) {}
+      }
+
+      window.addEventListener('resize', scaleWidget);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scaleWidget);
+      } else {
+        scaleWidget();
+      }
+    })();
+  </script>
+</body>
+</html>
