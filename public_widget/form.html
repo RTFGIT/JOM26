@@ -518,6 +518,39 @@
       border: 0;
     }
 
+    /* ── Read Aloud button ───────────────────────────────────────────── */
+    .read-aloud-btn {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.75rem;
+      background: none;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+      z-index: 5;
+    }
+    .read-aloud-btn:hover { border-color: #4CAF50; color: #2E7D32; }
+    .read-aloud-btn.speaking { border-color: #E53935; color: #E53935; }
+    .read-aloud-btn.speaking:hover { border-color: #C62828; color: #C62828; }
+
+    .read-aloud-highlight {
+      background: #FFF9C4 !important;
+      outline: 2px solid #FFD54F;
+      outline-offset: 2px;
+      border-radius: 4px;
+      transition: background 0.15s, outline 0.15s;
+    }
+
+    .widget-container { position: relative; }
+
     @media (max-width: 600px) {
       .pathway-grid { grid-template-columns: repeat(3, 1fr); }
       .form-row     { flex-direction: column; }
@@ -528,6 +561,10 @@
 </head>
 <body>
   <div class="widget-container" role="main" aria-label="Veg Pledge sign-up form">
+    <button type="button" class="read-aloud-btn" id="read-aloud-btn" onclick="toggleReadAloud()" aria-label="Read this page aloud">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+      <span id="read-aloud-label">Read Aloud</span>
+    </button>
     <div class="form-section">
       <form id="pledge-form" aria-label="Veg Pledge form">
 

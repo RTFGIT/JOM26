@@ -511,6 +511,153 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
   scrollParentToTop();
 });
 
+/* ── Read Aloud (Web Speech API) ──────────────────────────────────── */
+
+var _readAloudUtterance = null;
+var _readAloudElements = [];
+var _readAloudIndex = -1;
+
+/**
+ * Collect all readable text elements from the current visible step.
+ * Returns an array of { el, text } objects in DOM order.
+ */
+function _getReadableElements() {
+  var activeStep = document.querySelector('.form-step.active');
+  if (!activeStep) return [];
+
+  // Selectors for elements we want to read, in DOM order
+  var selectors = 'h2, p:not(.sr-only):not(.reset-countdown-text), .pathway-card .label, label, .btn-primary, .btn-back, .btn-action, .share-label, .share-btn, .end-card-subtitle, option:checked, .pledge-start-btn';
+  var nodes = activeStep.querySelectorAll(selectors);
+  var items = [];
+
+  nodes.forEach(function (el) {
+    // Skip hidden elements
+    if (el.offsetParent === null && !el.closest('.form-step.active')) return;
+    // Skip sr-only elements (already spoken as labels)
+    if (el.classList.contains('sr-only')) return;
+
+    var text = '';
+    // For buttons/links use aria-label first, then visible text
+    if (el.getAttribute('aria-label')) {
+      text = el.getAttribute('aria-label');
+    } else {
+      text = el.textContent.trim();
+    }
+    // Skip empty / SVG-only
+    if (!text || text.length < 2) return;
+    // Avoid duplicates (e.g. button text already captured via label)
+    if (items.length > 0 && items[items.length - 1].text === text) return;
+
+    items.push({ el: el, text: text });
+  });
+
+  return items;
+}
+
+/**
+ * Highlight the element being read and remove highlight from previous.
+ */
+function _highlightReadAloud(index) {
+  // Remove previous highlight
+  var prev = document.querySelector('.read-aloud-highlight');
+  if (prev) prev.classList.remove('read-aloud-highlight');
+
+  if (index >= 0 && index < _readAloudElements.length) {
+    var el = _readAloudElements[index].el;
+    el.classList.add('read-aloud-highlight');
+    // Scroll into view within the widget
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+/**
+ * Speak the next element in the queue.
+ */
+function _speakNext() {
+  _readAloudIndex++;
+  if (_readAloudIndex >= _readAloudElements.length) {
+    stopReadAloud();
+    return;
+  }
+
+  _highlightReadAloud(_readAloudIndex);
+
+  var item = _readAloudElements[_readAloudIndex];
+  _readAloudUtterance = new SpeechSynthesisUtterance(item.text);
+  _readAloudUtterance.rate = 0.95;
+  _readAloudUtterance.pitch = 1;
+  _readAloudUtterance.lang = 'en-GB';
+
+  _readAloudUtterance.onend = function () {
+    _speakNext();
+  };
+  _readAloudUtterance.onerror = function () {
+    _speakNext();
+  };
+
+  speechSynthesis.speak(_readAloudUtterance);
+}
+
+/**
+ * Toggle Read Aloud on/off.
+ */
+function toggleReadAloud() {
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    stopReadAloud();
+  } else {
+    startReadAloud();
+  }
+}
+
+function startReadAloud() {
+  if (!('speechSynthesis' in window)) {
+    alert('Sorry, your browser does not support text-to-speech.');
+    return;
+  }
+
+  // Cancel any leftover speech
+  speechSynthesis.cancel();
+
+  _readAloudElements = _getReadableElements();
+  if (_readAloudElements.length === 0) return;
+
+  _readAloudIndex = -1;
+
+  // Update button state
+  var btn = document.getElementById('read-aloud-btn');
+  var label = document.getElementById('read-aloud-label');
+  if (btn) btn.classList.add('speaking');
+  if (label) label.textContent = 'Stop';
+
+  _speakNext();
+}
+
+function stopReadAloud() {
+  speechSynthesis.cancel();
+  _readAloudUtterance = null;
+  _readAloudElements = [];
+  _readAloudIndex = -1;
+
+  // Remove highlight
+  var prev = document.querySelector('.read-aloud-highlight');
+  if (prev) prev.classList.remove('read-aloud-highlight');
+
+  // Reset button state
+  var btn = document.getElementById('read-aloud-btn');
+  var label = document.getElementById('read-aloud-label');
+  if (btn) btn.classList.remove('speaking');
+  if (label) label.textContent = 'Read Aloud';
+}
+
+// Stop reading when navigating between steps
+var _origShowStep = showStep;
+showStep = function (stepNumber) {
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    stopReadAloud();
+  }
+  _origShowStep(stepNumber);
+};
+
 /**
  * Notify the parent page of the current form content height so the
  * iframe can auto-resize instead of using a fixed height.
