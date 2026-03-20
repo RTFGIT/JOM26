@@ -60,7 +60,7 @@ const pathwayFields = {
 // Paths are relative to the repo root on GitHub Pages.
 // When adding/removing files from a folder, re-zip the folder to update.
 const DOWNLOAD_URLS = {
-  individual:   '/JOM26/Resources_downloads/individuals-resources.zip',
+  individual:   '/JOM26/Resources_downloads/individuals.zip',
   family:       '/JOM26/Resources_downloads/families-resources.zip',
   school:       '/JOM26/Resources_downloads/schools-resources.zip',
   organisation: '/JOM26/Resources_downloads/organisations-resources.zip',
@@ -498,14 +498,15 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
     }, '*');
   }
   
-  // Reset form fields and state immediately (step 4 has no inputs)
+  // Show the end card BEFORE resetting state so the download URL
+  // is set correctly based on the user type.
+  showStep(4);
+  startEndCardCountdown();
+
+  // Now reset form fields and state (step 4 has no inputs)
   document.getElementById('pledge-form').reset();
   widgetState.userType = null;
   widgetState.formData = {};
-
-  // Show the end card — iframe height will expand to fit it
-  showStep(4);
-  startEndCardCountdown();
 
   // Scroll the parent page to the top so the token animation is visible
   scrollParentToTop();
