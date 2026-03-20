@@ -60,12 +60,12 @@ const pathwayFields = {
 // Paths are relative to the repo root on GitHub Pages.
 // When adding/removing files from a folder, re-zip the folder to update.
 const DOWNLOAD_URLS = {
-  individual:   '/Resources_downloads/individuals-resources.zip',
-  family:       '/Resources_downloads/families-resources.zip',
-  school:       '/Resources_downloads/schools-resources.zip',
-  organisation: '/Resources_downloads/organisations-resources.zip',
-  community:    '/Resources_downloads/community_groups-resources.zip',
-  other:        '/Resources_downloads/other-resources.zip'
+  individual:   '/JOM26/Resources_downloads/individuals-resources.zip',
+  family:       '/JOM26/Resources_downloads/families-resources.zip',
+  school:       '/JOM26/Resources_downloads/schools-resources.zip',
+  organisation: '/JOM26/Resources_downloads/organisations-resources.zip',
+  community:    '/JOM26/Resources_downloads/community_groups-resources.zip',
+  other:        '/JOM26/Resources_downloads/other-resources.zip'
 };
 
 // Widget state
