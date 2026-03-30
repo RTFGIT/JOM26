@@ -742,10 +742,16 @@ function holdingModeClick() {
   if (holdingEnd) {
     holdingEnd.classList.add('active');
     holdingEnd.removeAttribute('aria-hidden');
+    holdingEnd.style.display = 'block';
   }
 
   startHoldingEndCountdown();
+
+  // Multiple height notifications to ensure the iframe expands
   setTimeout(notifyHeight, 50);
+  setTimeout(notifyHeight, 200);
+  setTimeout(notifyHeight, 500);
+
   scrollParentToTop();
 }
 
