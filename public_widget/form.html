@@ -761,9 +761,35 @@
     })();
 
     // Launch config — switch form between holding mode and live mode
-    startLaunchConfigListener(({ campaignLive }) => {
+    let formAutoLaunchTimer = null;
+    let formStoredLaunchDate = null;
+    let formStoredLaunchTime = null;
+
+    function applyLiveState(live) {
       if (typeof applyFormHoldingMode === 'function') {
-        applyFormHoldingMode(!campaignLive);
+        applyFormHoldingMode(!live);
+      }
+      if (live && formAutoLaunchTimer) {
+        clearInterval(formAutoLaunchTimer);
+        formAutoLaunchTimer = null;
+      }
+    }
+
+    startLaunchConfigListener(({ campaignLive, launchDate, launchTime }) => {
+      formStoredLaunchDate = launchDate;
+      formStoredLaunchTime = launchTime;
+      applyLiveState(campaignLive);
+
+      // If not live, poll for auto-launch by time (Firestore won't re-fire)
+      if (!campaignLive && !formAutoLaunchTimer) {
+        formAutoLaunchTimer = setInterval(() => {
+          if (formStoredLaunchDate && formStoredLaunchTime) {
+            const target = new Date(formStoredLaunchDate + 'T' + formStoredLaunchTime);
+            if (new Date() >= target) {
+              applyLiveState(true);
+            }
+          }
+        }, 1000);
       }
     });
 

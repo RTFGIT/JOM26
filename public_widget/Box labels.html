@@ -178,8 +178,8 @@ SNACK</div>
     function setLabelsLive(container, animate) {
       if (!labelsHidden && !firstLoad) return; // already visible
       if (animate) {
-        // Delay reveal to sync with patch eruption (~3.5s)
-        setTimeout(() => { container.classList.remove('holding-hidden'); }, 3500);
+        // Delay: ~3.5s eruption + 0.8s box fade-in + 1s gap = 5.3s
+        setTimeout(() => { container.classList.remove('holding-hidden'); }, 5300);
       } else {
         container.classList.remove('holding-hidden');
       }
