@@ -316,7 +316,7 @@ function renderChildAgeFields(count) {
   if (!container) return;
 
   count = Math.max(0, Math.min(20, parseInt(count) || 0));
-  if (count === 0) { container.innerHTML = ''; return; }
+  if (count === 0) { container.innerHTML = ''; setTimeout(notifyHeight, 50); return; }
 
   var html = [];
   for (var c = 0; c < count; c++) {
@@ -333,6 +333,8 @@ function renderChildAgeFields(count) {
     if (c % 2 === 1 || c === count - 1) html.push('</div>');
   }
   container.innerHTML = html.join('');
+  // Notify parent iframe to resize now that the form content has changed
+  setTimeout(notifyHeight, 50);
 }
 
 /**
@@ -714,10 +716,92 @@ function startEndCardCountdown() {
   }, 30000);
 }
 
-// Listen for messages from veg patch widget
+/* ── Holding mode (pre-launch) ──────────────────────────────────── */
+
+var formHoldingMode = false;
+var holdingResetTimer = null;
+var holdingCountdownInterval = null;
+
+function holdingModeClick() {
+  // Send ADD_TO_PILE to parent (forwarded to patch iframe)
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'ADD_TO_PILE', count: 3 }, '*');
+  }
+
+  // Show the holding-end step
+  document.querySelectorAll('.form-step').forEach(function (step) {
+    step.classList.remove('active');
+    step.setAttribute('aria-hidden', 'true');
+  });
+  var holdingEnd = document.querySelector('.form-step[data-step="holding-end"]');
+  if (holdingEnd) {
+    holdingEnd.classList.add('active');
+    holdingEnd.removeAttribute('aria-hidden');
+  }
+
+  startHoldingEndCountdown();
+  setTimeout(notifyHeight, 50);
+  scrollParentToTop();
+}
+
+function startHoldingEndCountdown() {
+  var seconds = 15;
+  var countdownEl = document.getElementById('holding-reset-countdown');
+
+  if (holdingResetTimer) clearTimeout(holdingResetTimer);
+  if (holdingCountdownInterval) clearInterval(holdingCountdownInterval);
+
+  if (countdownEl) countdownEl.textContent = seconds;
+
+  holdingCountdownInterval = setInterval(function () {
+    seconds -= 1;
+    if (countdownEl) countdownEl.textContent = seconds;
+    if (seconds <= 0) clearInterval(holdingCountdownInterval);
+  }, 1000);
+
+  holdingResetTimer = setTimeout(function () {
+    clearInterval(holdingCountdownInterval);
+    holdingResetTimer = null;
+    holdingCountdownInterval = null;
+    widgetState.currentStep = 1;
+    showStep(1);
+  }, 15000);
+}
+
+function applyFormHoldingMode(holding) {
+  var btn = document.querySelector('.pledge-start-btn');
+  if (!btn) return;
+
+  if (holding) {
+    formHoldingMode = true;
+    btn.textContent = 'ADD YOUR VEG TO THE PILE';
+    btn.setAttribute('onclick', 'holdingModeClick()');
+    btn.setAttribute('aria-label', 'Add your veg to the pile - click to contribute');
+  } else {
+    formHoldingMode = false;
+    btn.textContent = 'MAKE YOUR VEG PLEDGE!';
+    btn.setAttribute('onclick', 'nextStep()');
+    btn.setAttribute('aria-label', 'Make your veg pledge - click to begin');
+    // If showing holding-end step, go back to step 1
+    var holdingEnd = document.querySelector('.form-step[data-step="holding-end"]');
+    if (holdingEnd && holdingEnd.classList.contains('active')) {
+      if (holdingResetTimer) clearTimeout(holdingResetTimer);
+      if (holdingCountdownInterval) clearInterval(holdingCountdownInterval);
+      widgetState.currentStep = 1;
+      showStep(1);
+    }
+  }
+}
+
+// Listen for messages from parent / veg patch widget
 window.addEventListener('message', (event) => {
-  if (event.data.type === 'REQUEST_UPDATE') {
+  var data = event.data;
+  if (!data) return;
+
+  if (data.type === 'REQUEST_UPDATE') {
     // Veg patch is requesting current state
+  } else if (data.type === 'SET_HOLDING_MODE') {
+    applyFormHoldingMode(data.holding);
   }
 });
 
