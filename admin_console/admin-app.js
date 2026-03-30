@@ -6,7 +6,7 @@
  */
 
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, setDoc, onSnapshot }
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, setDoc, deleteDoc, writeBatch, onSnapshot }
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -741,6 +741,68 @@ goLiveBtn.addEventListener('click', async () => {
   goLiveBtn.disabled = false;
   goLiveBtn.textContent = '🚀 Go Live Now';
   setTimeout(() => { launchStatusEl.textContent = ''; }, 5000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reset campaign data
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('reset-campaign-btn').addEventListener('click', async () => {
+  // Step 1: First confirm
+  if (!confirm('WARNING: This will permanently delete ALL submissions, reset ALL token counters, and clear ALL shoutouts.\n\nThis cannot be undone.\n\nClick OK to proceed.')) return;
+
+  // Step 2: Type DELETE
+  const typed = prompt('Type DELETE to confirm you want to erase all campaign data:');
+  if (typed !== 'DELETE') {
+    alert('Reset cancelled — you did not type DELETE.');
+    return;
+  }
+
+  // Step 3: Final confirm
+  if (!confirm('FINAL WARNING: All submissions, tokens, and shoutouts will be permanently deleted.\n\nAre you absolutely sure?')) return;
+
+  const btn = document.getElementById('reset-campaign-btn');
+  btn.disabled = true;
+  btn.textContent = 'Resetting…';
+
+  try {
+    // 1) Delete all submissions (in batches of 500)
+    const subsSnap = await getDocs(collection(db, 'submissions'));
+    const batchSize = 500;
+    let docs = subsSnap.docs;
+    while (docs.length > 0) {
+      const batch = writeBatch(db);
+      const chunk = docs.splice(0, batchSize);
+      chunk.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+
+    // 2) Reset totaliser to zero
+    await setDoc(doc(db, 'public', 'totaliser'), {
+      box1: 0, box2: 0, box3: 0, box4: 0, box5: 0,
+      total_tokens: 0, submission_count: 0
+    });
+
+    // 3) Clear shoutouts
+    await setDoc(doc(db, 'public', 'shoutouts'), { entries: [] });
+
+    // 4) Reset holding interest counter
+    await setDoc(doc(db, 'public', 'launch-config'), {
+      holding_interest: 0
+    }, { merge: true });
+
+    // 5) Refresh the local table
+    allSubmissions = [];
+    renderTable(allSubmissions);
+    tableCount.textContent = '0 submissions';
+
+    alert('Campaign data has been reset successfully.');
+  } catch (err) {
+    console.error('Reset failed:', err);
+    alert('Reset failed: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Reset Campaign Data';
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
