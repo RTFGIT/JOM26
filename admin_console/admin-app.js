@@ -587,6 +587,31 @@ saveLaunchBtn.addEventListener('click', async () => {
   setTimeout(() => { launchStatusEl.textContent = ''; }, 3000);
 });
 
+const revertHoldingBtn = document.getElementById('revert-holding-btn');
+
+revertHoldingBtn.addEventListener('click', async () => {
+  if (!confirm('Revert to holding screen? All widgets will switch back to pre-launch mode.')) return;
+
+  revertHoldingBtn.disabled = true;
+  revertHoldingBtn.textContent = 'Reverting…';
+
+  try {
+    await setDoc(doc(db, 'public', 'launch-config'), { campaign_live: false }, { merge: true });
+    campaignLiveEl.checked = false;
+    updateLiveIndicator(false);
+    launchStatusEl.textContent = '⏪ Reverted to holding';
+    launchStatusEl.style.color = '#E65100';
+  } catch (err) {
+    launchStatusEl.textContent = 'Error reverting';
+    launchStatusEl.style.color = '#C62828';
+    console.error('Failed to revert to holding:', err);
+  }
+
+  revertHoldingBtn.disabled = false;
+  revertHoldingBtn.textContent = '⏪ Revert to Holding';
+  setTimeout(() => { launchStatusEl.textContent = ''; }, 5000);
+});
+
 goLiveBtn.addEventListener('click', async () => {
   if (!confirm('Go live now? This will switch all widgets from holding screen to live campaign mode.')) return;
 
