@@ -3,9 +3,8 @@
 // Uses ESM CDN imports to work on GitHub Pages without bundling
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-// App Check — uncomment when ready to enforce
-// import { initializeAppCheck, ReCaptchaEnterpriseProvider }
-//   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 
 export const firebaseConfig = {
   apiKey: 'AIzaSyC8pzBOqExWyNNx3OOssPAAmC8XgcobO8M',
@@ -20,10 +19,14 @@ export const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// App Check — uncomment when ready to enforce
-// const appCheck = initializeAppCheck(app, {
-//   provider: new ReCaptchaEnterpriseProvider('6LeYMZ4sAAAAAHiIPWUa8_2xkTYkF3QonBYgDUId'),
-//   isTokenAutoRefreshEnabled: true
-// });
-
-console.log('[JOM26] Firebase initialized, db ready');
+// App Check — reCAPTCHA Enterprise (invisible, no user interaction)
+try {
+  const appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider('6LeYMZ4sAAAAAHiIPWUa8_2xkTYkF3QonBYgDUId'),
+    isTokenAutoRefreshEnabled: true
+  });
+  console.log('[JOM26] Firebase initialized with App Check, db ready');
+} catch (err) {
+  console.error('[JOM26] App Check initialization failed:', err);
+  console.log('[JOM26] Firebase initialized WITHOUT App Check, db ready');
+}

@@ -481,7 +481,11 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
       
     } catch (err) {
       console.error('Firestore submission failed:', err);
-      alert('Failed to submit to database. Using local mode instead.');
+      if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
+        alert('Submission was not accepted. Please check your entry — the maximum number of participants is 100.');
+      } else {
+        alert('Something went wrong submitting your pledge. Please try again.');
+      }
     }
   }
 
