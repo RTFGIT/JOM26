@@ -172,10 +172,15 @@
     }
 
     /* ── Holding mode — hide boxes + logo during pre-launch ────────────── */
+    /* Transition lives on the elements so it applies in BOTH directions
+       (fade-out when adding .holding-hidden, fade-in when removing it). */
+    .boxes-row, #jom-logo {
+      transition: opacity 0.8s ease-in-out;
+    }
+
     .holding-hidden {
       opacity: 0 !important;
       pointer-events: none;
-      transition: opacity 0.8s ease-in-out;
     }
 
     /* ── Countdown overlay — centred in the sky area ─────────────────── */

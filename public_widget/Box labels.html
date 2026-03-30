@@ -171,31 +171,55 @@ SNACK</div>
 
     let firstLoad = true;
     let labelsHidden = false;
+    let storedLaunchDate = null;
+    let storedLaunchTime = null;
+    let autoLaunchTimer = null;
 
-    startLaunchConfigListener(({ campaignLive }) => {
+    function setLabelsLive(container, animate) {
+      if (!labelsHidden && !firstLoad) return; // already visible
+      if (animate) {
+        // Delay reveal to sync with patch eruption (~3.5s)
+        setTimeout(() => { container.classList.remove('holding-hidden'); }, 3500);
+      } else {
+        container.classList.remove('holding-hidden');
+      }
+      labelsHidden = false;
+      if (autoLaunchTimer) { clearInterval(autoLaunchTimer); autoLaunchTimer = null; }
+    }
+
+    function setLabelsHolding(container, instant) {
+      if (instant) {
+        container.style.transition = 'none';
+        container.classList.add('holding-hidden');
+        requestAnimationFrame(() => { container.style.transition = ''; });
+      } else {
+        container.classList.add('holding-hidden');
+      }
+      labelsHidden = true;
+
+      // Start polling for auto-launch by time (Firestore won't re-fire)
+      if (autoLaunchTimer) clearInterval(autoLaunchTimer);
+      autoLaunchTimer = setInterval(() => {
+        if (storedLaunchDate && storedLaunchTime) {
+          const target = new Date(storedLaunchDate + 'T' + storedLaunchTime);
+          if (new Date() >= target) {
+            setLabelsLive(container, true);
+          }
+        }
+      }, 1000);
+    }
+
+    startLaunchConfigListener(({ campaignLive, launchDate, launchTime }) => {
       const container = document.querySelector('.labels-container');
       if (!container) return;
 
+      storedLaunchDate = launchDate;
+      storedLaunchTime = launchTime;
+
       if (campaignLive) {
-        if (firstLoad) {
-          // Campaign is live on page load — ensure labels are visible immediately
-          container.classList.remove('holding-hidden');
-        } else if (labelsHidden) {
-          // Transitioning from holding → live — delay to sync with eruption
-          setTimeout(() => { container.classList.remove('holding-hidden'); }, 3500);
-        }
-        labelsHidden = false;
+        setLabelsLive(container, !firstLoad);
       } else {
-        if (firstLoad) {
-          // Start hidden immediately with no transition flash
-          container.style.transition = 'none';
-          container.classList.add('holding-hidden');
-          // Re-enable transition after paint
-          requestAnimationFrame(() => { container.style.transition = ''; });
-        } else {
-          container.classList.add('holding-hidden');
-        }
-        labelsHidden = true;
+        setLabelsHolding(container, firstLoad);
       }
       firstLoad = false;
     });
