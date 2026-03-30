@@ -109,6 +109,7 @@ onAuthStateChanged(auth, async (user) => {
   await loadSubmissions();
   loadCelebrationConfig();
   loadPledgeOptions();
+  loadBannedWords();
   loadLaunchConfig();
 });
 
@@ -296,10 +297,10 @@ function renderTable() {
       <td style="white-space:nowrap">${date}</td>
       <td>${escapeHtml(r.name || '—')}</td>
       <td>${escapeHtml(r.email || '—')}${dupeBadge}</td>
-      <td><span class="type-chip">${r.user_type || '—'}</span></td>
-      <td style="text-align:center">${r.participants_count ?? '—'}</td>
-      <td style="text-align:center"><span class="badge badge-box">Box ${r.box_number ?? '?'}</span></td>
-      <td style="text-align:center">${r.tokens ?? '—'}</td>
+      <td><span class="type-chip">${escapeHtml(String(r.user_type || '—'))}</span></td>
+      <td style="text-align:center">${escapeHtml(String(r.participants_count ?? '—'))}</td>
+      <td style="text-align:center"><span class="badge badge-box">Box ${escapeHtml(String(r.box_number ?? '?'))}</span></td>
+      <td style="text-align:center">${escapeHtml(String(r.tokens ?? '—'))}</td>
       <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(r.pledge_approach || '')}">${escapeHtml(r.pledge_approach || '—')}</td>
       <td style="text-align:center">
         <span class="badge ${r.newsletter_opt_in ? 'badge-yes' : 'badge-no'}">
@@ -509,6 +510,54 @@ savePledgeOptsBtn.addEventListener('click', async () => {
   savePledgeOptsBtn.disabled = false;
   savePledgeOptsBtn.textContent = 'Save Pledge Options';
   setTimeout(() => { pledgeOptStatus.textContent = ''; }, 3000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Banned words (shoutout filter)
+// ─────────────────────────────────────────────────────────────────────────────
+const bannedWordsInput  = document.getElementById('banned-words-input');
+const saveBannedWordsBtn = document.getElementById('save-banned-words-btn');
+const bannedWordsStatus  = document.getElementById('banned-words-save-status');
+
+async function loadBannedWords() {
+  try {
+    const snap = await getDoc(doc(db, 'system', 'banned-words'));
+    const data = snap.exists() ? snap.data() : {};
+    const words = Array.isArray(data.words) ? data.words : [];
+    bannedWordsInput.value = words.join('\n');
+  } catch (err) {
+    console.error('Failed to load banned words:', err);
+  }
+}
+
+saveBannedWordsBtn.addEventListener('click', async () => {
+  saveBannedWordsBtn.disabled = true;
+  saveBannedWordsBtn.textContent = 'Saving…';
+
+  const words = bannedWordsInput.value
+    .split('\n')
+    .map(w => w.trim().toLowerCase())
+    .filter(w => w.length > 0);
+
+  // Deduplicate
+  const unique = [...new Set(words)];
+
+  try {
+    // Save to system (admin-only) and public (widget-readable) copies
+    await setDoc(doc(db, 'system', 'banned-words'), { words: unique });
+    await setDoc(doc(db, 'public', 'banned-words'), { words: unique });
+    bannedWordsInput.value = unique.join('\n');
+    bannedWordsStatus.textContent = '✓ Saved!';
+    bannedWordsStatus.style.color = '#2E7D32';
+  } catch (err) {
+    bannedWordsStatus.textContent = 'Error saving';
+    bannedWordsStatus.style.color = '#C62828';
+    console.error('Failed to save banned words:', err);
+  }
+
+  saveBannedWordsBtn.disabled = false;
+  saveBannedWordsBtn.textContent = 'Save Banned Words';
+  setTimeout(() => { bannedWordsStatus.textContent = ''; }, 3000);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

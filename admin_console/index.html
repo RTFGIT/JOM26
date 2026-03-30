@@ -420,6 +420,21 @@
         </div>
       </div>
 
+      <!-- Banned Words -->
+      <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
+        <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">🚫 Banned Words (Shoutout Filter)</h3>
+        <p style="font-size:0.85rem; color:#757575; margin-bottom:0.75rem;">
+          Shoutout names containing any of these words will be blocked on submission and hidden on display. One word per line, case-insensitive.
+        </p>
+        <textarea id="banned-words-input" rows="6"
+          style="width:100%; padding:0.5rem 0.75rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit; resize:vertical; margin-bottom:0.75rem;"
+          placeholder="Enter banned words, one per line..."></textarea>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <button class="btn btn-primary btn-sm" id="save-banned-words-btn">Save Banned Words</button>
+          <span id="banned-words-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
+        </div>
+      </div>
+
       <!-- Toolbar -->
       <div class="toolbar">
         <input type="text" id="search-input" placeholder="Search name or email…">
