@@ -406,20 +406,77 @@
 
     // ── Launch config — holding screen / go-live from admin console ──
     let holdingActive = false;
-    let countdownInterval = null;
+    let countdownTimer = null;
+    let storedLaunchDate = null;
+    let storedLaunchTime = null;
 
-    function updateCountdown(launchDate, launchTime) {
-      const el = document.getElementById('countdown-days');
-      if (!el) return;
-      const target = new Date(launchDate + 'T' + (launchTime || '09:00'));
+    function getLaunchTarget() {
+      return new Date(storedLaunchDate + 'T' + (storedLaunchTime || '09:00'));
+    }
+
+    function updateCountdown() {
+      const valueEl = document.getElementById('countdown-days');
+      const labelEl = document.querySelector('.countdown-label');
+      if (!valueEl || !labelEl) return;
+
+      const target = getLaunchTarget();
       const now = new Date();
       const diffMs = target - now;
-      const days = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-      el.textContent = days;
+
+      // Launch time has passed — auto-launch!
+      if (diffMs <= 0) {
+        valueEl.textContent = '0';
+        labelEl.textContent = 'LAUNCHING...';
+        exitHoldingMode();
+        return;
+      }
+
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const totalHours   = Math.floor(totalMinutes / 60);
+      const days         = Math.floor(totalHours / 24);
+
+      if (days >= 2) {
+        valueEl.textContent = days;
+        labelEl.textContent = 'DAYS TO LAUNCH';
+      } else if (days === 1) {
+        const remainingHours = totalHours - (days * 24);
+        if (remainingHours > 0) {
+          valueEl.textContent = days + 'd ' + remainingHours + 'h';
+        } else {
+          valueEl.textContent = '1';
+          labelEl.textContent = 'DAY TO LAUNCH';
+        }
+        labelEl.textContent = 'TO LAUNCH';
+      } else if (totalHours >= 1) {
+        const remainingMins = totalMinutes - (totalHours * 60);
+        valueEl.textContent = totalHours + 'h ' + remainingMins + 'm';
+        labelEl.textContent = 'TO LAUNCH';
+      } else if (totalMinutes >= 1) {
+        const remainingSecs = totalSeconds - (totalMinutes * 60);
+        valueEl.textContent = totalMinutes + 'm ' + remainingSecs + 's';
+        labelEl.textContent = 'TO LAUNCH';
+      } else {
+        valueEl.textContent = totalSeconds + 's';
+        labelEl.textContent = 'TO LAUNCH';
+      }
     }
 
     function enterHoldingMode(launchDate, launchTime) {
-      if (holdingActive) return;
+      storedLaunchDate = launchDate;
+      storedLaunchTime = launchTime;
+
+      // Check if launch time already passed — go straight to live
+      if (getLaunchTarget() <= new Date()) {
+        if (holdingActive) exitHoldingMode();
+        return;
+      }
+
+      if (holdingActive) {
+        // Already in holding — just update the countdown target
+        updateCountdown();
+        return;
+      }
       holdingActive = true;
 
       // Hide boxes + logo
@@ -431,9 +488,10 @@
         countdownEl.style.display = 'block';
         setTimeout(() => { countdownEl.style.opacity = '1'; }, 50);
       }
-      updateCountdown(launchDate, launchTime);
-      if (countdownInterval) clearInterval(countdownInterval);
-      countdownInterval = setInterval(() => updateCountdown(launchDate, launchTime), 60000);
+      updateCountdown();
+      // Tick every second for smooth countdown when < 1 day
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(updateCountdown, 1000);
 
       // Tell token-boxes to enter holding mode (volcano pile)
       if (window.tokenBoxes && typeof window.tokenBoxes.enterHoldingMode === 'function') {
@@ -445,7 +503,7 @@
       if (!holdingActive) return;
       holdingActive = false;
 
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
 
       // Trigger eruption — on complete, reveal boxes
       if (window.tokenBoxes && typeof window.tokenBoxes.triggerEruption === 'function') {
