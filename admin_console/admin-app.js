@@ -521,10 +521,41 @@ const liveIndicatorEl  = document.getElementById('campaign-live-indicator');
 const holdingCountEl   = document.getElementById('holding-interest-count');
 const saveLaunchBtn    = document.getElementById('save-launch-btn');
 const goLiveBtn        = document.getElementById('go-live-btn');
+const revertHoldingBtn = document.getElementById('revert-holding-btn');
 const launchStatusEl   = document.getElementById('launch-save-status');
 
-function updateLiveIndicator(isLive) {
-  if (isLive) {
+// Set minimum date/time to now so admin can't schedule in the past
+function enforceMinDateTime() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  launchDateEl.setAttribute('min', todayStr);
+
+  // If selected date is today, enforce min time too
+  if (launchDateEl.value === todayStr) {
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    launchTimeEl.setAttribute('min', hh + ':' + mm);
+  } else {
+    launchTimeEl.removeAttribute('min');
+  }
+}
+
+launchDateEl.addEventListener('change', enforceMinDateTime);
+launchTimeEl.addEventListener('change', enforceMinDateTime);
+
+// Determine effective live state: flag OR past launch time
+function isEffectivelyLive(data) {
+  if (data.campaign_live) return true;
+  const d = data.launch_date || '2099-12-31';
+  const t = data.launch_time || '09:00';
+  return new Date() >= new Date(d + 'T' + t);
+}
+
+function updateLiveUI(data) {
+  const live = isEffectivelyLive(data);
+
+  // Indicator badge
+  if (live) {
     liveIndicatorEl.textContent = 'LIVE';
     liveIndicatorEl.style.background = '#E8F5E9';
     liveIndicatorEl.style.color = '#2E7D32';
@@ -533,35 +564,60 @@ function updateLiveIndicator(isLive) {
     liveIndicatorEl.style.background = '#FFF3E0';
     liveIndicatorEl.style.color = '#E65100';
   }
+
+  // Show the relevant action button, hide the other
+  goLiveBtn.style.display        = live ? 'none' : '';
+  revertHoldingBtn.style.display = live ? '' : 'none';
+
+  // Checkbox reflects the Firestore flag
+  campaignLiveEl.checked = data.campaign_live ?? false;
 }
 
 async function loadLaunchConfig() {
   try {
     const snap = await getDoc(doc(db, 'public', 'launch-config'));
     const data = snap.exists() ? snap.data() : {};
-    campaignLiveEl.checked = data.campaign_live ?? false;
-    launchDateEl.value     = data.launch_date   ?? '2026-04-01';
-    launchTimeEl.value     = data.launch_time   ?? '09:00';
-    updateLiveIndicator(campaignLiveEl.checked);
+    launchDateEl.value = data.launch_date ?? '2026-04-01';
+    launchTimeEl.value = data.launch_time ?? '09:00';
+    updateLiveUI(data);
+    enforceMinDateTime();
   } catch (err) {
     console.error('Failed to load launch config:', err);
   }
 
-  // Real-time listener for holding interest counter
+  // Real-time listener — keeps UI in sync across multiple admin sessions
   onSnapshot(doc(db, 'public', 'launch-config'), (snap) => {
     const data = snap.data() || {};
     holdingCountEl.textContent = (data.holding_interest || 0).toLocaleString();
-    // Keep UI in sync if another admin changes it
-    campaignLiveEl.checked = data.campaign_live ?? false;
-    updateLiveIndicator(campaignLiveEl.checked);
+    launchDateEl.value = data.launch_date ?? launchDateEl.value;
+    launchTimeEl.value = data.launch_time ?? launchTimeEl.value;
+    updateLiveUI(data);
+    enforceMinDateTime();
   });
 }
 
+// Checkbox change — just a preview, doesn't save until Save is clicked
 campaignLiveEl.addEventListener('change', () => {
-  updateLiveIndicator(campaignLiveEl.checked);
+  const previewData = {
+    campaign_live: campaignLiveEl.checked,
+    launch_date: launchDateEl.value,
+    launch_time: launchTimeEl.value
+  };
+  updateLiveUI(previewData);
 });
 
 saveLaunchBtn.addEventListener('click', async () => {
+  // Validate date/time not in the past (unless going live now)
+  if (!campaignLiveEl.checked) {
+    const target = new Date(launchDateEl.value + 'T' + launchTimeEl.value);
+    if (target <= new Date()) {
+      launchStatusEl.textContent = 'Launch date/time must be in the future';
+      launchStatusEl.style.color = '#C62828';
+      setTimeout(() => { launchStatusEl.textContent = ''; }, 4000);
+      return;
+    }
+  }
+
   saveLaunchBtn.disabled = true;
   saveLaunchBtn.textContent = 'Saving…';
 
@@ -572,7 +628,6 @@ saveLaunchBtn.addEventListener('click', async () => {
   };
 
   try {
-    // Merge so we don't overwrite holding_interest counter
     await setDoc(doc(db, 'public', 'launch-config'), config, { merge: true });
     launchStatusEl.textContent = '✓ Saved!';
     launchStatusEl.style.color = '#2E7D32';
@@ -587,19 +642,25 @@ saveLaunchBtn.addEventListener('click', async () => {
   setTimeout(() => { launchStatusEl.textContent = ''; }, 3000);
 });
 
-const revertHoldingBtn = document.getElementById('revert-holding-btn');
-
 revertHoldingBtn.addEventListener('click', async () => {
   if (!confirm('Revert to holding screen? All widgets will switch back to pre-launch mode.')) return;
 
   revertHoldingBtn.disabled = true;
   revertHoldingBtn.textContent = 'Reverting…';
 
+  // Set campaign_live false AND push the launch date into the future
+  // so the auto-launch-by-time logic doesn't immediately re-launch
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const futureDate = tomorrow.toISOString().slice(0, 10);
+
   try {
-    await setDoc(doc(db, 'public', 'launch-config'), { campaign_live: false }, { merge: true });
-    campaignLiveEl.checked = false;
-    updateLiveIndicator(false);
-    launchStatusEl.textContent = '⏪ Reverted to holding';
+    await setDoc(doc(db, 'public', 'launch-config'), {
+      campaign_live: false,
+      launch_date: futureDate,
+      launch_time: launchTimeEl.value
+    }, { merge: true });
+    launchStatusEl.textContent = '⏪ Reverted to holding — launch date set to ' + futureDate;
     launchStatusEl.style.color = '#E65100';
   } catch (err) {
     launchStatusEl.textContent = 'Error reverting';
@@ -620,8 +681,6 @@ goLiveBtn.addEventListener('click', async () => {
 
   try {
     await setDoc(doc(db, 'public', 'launch-config'), { campaign_live: true }, { merge: true });
-    campaignLiveEl.checked = true;
-    updateLiveIndicator(true);
     launchStatusEl.textContent = '🚀 Campaign is LIVE!';
     launchStatusEl.style.color = '#2E7D32';
   } catch (err) {
