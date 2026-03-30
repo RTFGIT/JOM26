@@ -10,6 +10,8 @@ import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, setDoc,
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider }
+                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Firebase initialisation
@@ -26,6 +28,13 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+
+try {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider('6LeYMZ4sAAAAAHiIPWUa8_2xkTYkF3QonBYgDUId'),
+    isTokenAutoRefreshEnabled: true
+  });
+} catch (e) { console.error('App Check init failed:', e); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State
