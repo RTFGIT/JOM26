@@ -14,11 +14,27 @@
  */
 
 import { db } from './widget-config.js';
-import { doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { doc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const HOLD_MS = 3500;   // ms each entry stays in the centre
 const ANIM_MS = 450;    // must match the CSS transition duration
+
+// ── Banned words (loaded once, used to filter display) ───────────────────────
+let bannedWords = [];
+(async function loadBannedWords() {
+  try {
+    const snap = await getDoc(doc(db, 'public', 'banned-words'));
+    if (snap.exists() && Array.isArray(snap.data().words)) {
+      bannedWords = snap.data().words;
+    }
+  } catch (e) { /* ignore — show all if list can't be loaded */ }
+})();
+
+function isBanned(name) {
+  const lower = name.toLowerCase();
+  return bannedWords.some(word => lower.includes(word));
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 let entries     = [];
@@ -145,7 +161,7 @@ onSnapshot(doc(db, 'public', 'shoutouts'), (snap) => {
     return;
   }
 
-  const raw = (snap.data().entries || []).filter(e => e && e.name);
+  const raw = (snap.data().entries || []).filter(e => e && e.name && !isBanned(e.name));
   raw.sort((a, b) => (a.ts || 0) - (b.ts || 0));
 
   entries = raw;

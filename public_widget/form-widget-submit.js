@@ -11,6 +11,28 @@ console.log('[JOM26] form-widget-submit.js loaded, db available:', !!db);
 // Only these types are eligible for the shout-out feature
 const SHOUTOUT_TYPES = ['school', 'organisation', 'community'];
 
+// Banned words cache — loaded once, used to filter shoutout names
+let bannedWordsCache = null;
+
+async function loadBannedWords() {
+  if (bannedWordsCache !== null) return bannedWordsCache;
+  try {
+    const snap = await getDoc(doc(db, 'public', 'banned-words'));
+    bannedWordsCache = snap.exists() && Array.isArray(snap.data().words)
+      ? snap.data().words
+      : [];
+  } catch (err) {
+    console.warn('[JOM26] Could not load banned words:', err);
+    bannedWordsCache = [];
+  }
+  return bannedWordsCache;
+}
+
+function containsBannedWord(text, bannedWords) {
+  const lower = text.toLowerCase();
+  return bannedWords.some(word => lower.includes(word));
+}
+
 function calculateTokens(userType, participantsCount) {
   switch (String(userType || '').toLowerCase()) {
     case 'individual':
@@ -20,7 +42,7 @@ function calculateTokens(userType, participantsCount) {
     case 'school':
     case 'organisation':
     case 'community':
-      return Math.max(1, Number(participantsCount || 1));
+      return Math.min(100, Math.max(1, Number(participantsCount || 1)));
     default:
       return 1;
   }
@@ -80,15 +102,19 @@ export async function submitPledge({
   // 3) If the user opted in to the shout-out, append their group name to public/shoutouts.
   //    We verify the user type server-side here so non-eligible types can never appear
   //    even if somehow the checkbox value were tampered with.
+  //    Names containing banned words are silently skipped (no error to the user).
   if (shoutout && displayName && SHOUTOUT_TYPES.includes(userType)) {
-    const shoutoutsRef = doc(db, 'public', 'shoutouts');
-    await setDoc(shoutoutsRef, {
-      entries: arrayUnion({
-        name: displayName,
-        type: userType,
-        ts:   Math.floor(Date.now() / 1000)   // Unix seconds — used by widget to detect "new" arrivals
-      })
-    }, { merge: true });
+    const bannedWords = await loadBannedWords();
+    if (!containsBannedWord(displayName, bannedWords)) {
+      const shoutoutsRef = doc(db, 'public', 'shoutouts');
+      await setDoc(shoutoutsRef, {
+        entries: arrayUnion({
+          name: displayName,
+          type: userType,
+          ts:   Math.floor(Date.now() / 1000)   // Unix seconds — used by widget to detect "new" arrivals
+        })
+      }, { merge: true });
+    }
   }
 
   return { tokens, boxNumber: boxNum };

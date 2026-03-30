@@ -42,7 +42,7 @@ const pathwayFields = {
     { id: 'org_name', label: 'Organisation Name', type: 'text',   required: true,  row: 'or1' },
     { id: 'org_type', label: 'Organisation Type', type: 'select', required: true,  row: 'or1',
       options: ['Business', 'Non-profit', 'Government', 'Healthcare', 'Education', 'Other'] },
-    { id: 'org_size', label: 'Number of Participants', type: 'number', required: false, min: 1, max: 1000 },
+    { id: 'org_size', label: 'Number of Participants', type: 'number', required: false, min: 1, max: 100 },
     PLEDGE_APPROACH_FIELD
   ],
   community: [
@@ -402,6 +402,11 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
     participantsCount = parseInt(document.getElementById('group_size')?.value) || null;
   }
 
+  // Clamp participantsCount to 100 max (Firestore rules also enforce this)
+  if (participantsCount !== null) {
+    participantsCount = Math.min(100, Math.max(1, participantsCount));
+  }
+
   const familySize = widgetState.userType === 'family' ? participantsCount : null;
 
   let boxNumber = parseInt(document.getElementById('pledge').value) || 1;
@@ -481,7 +486,7 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
   }
 
   if (!useFirestore) {
-    tokens = participantsCount || 1;
+    tokens = Math.min(100, Math.max(1, participantsCount || 1));
     
     if (window.parent !== window) {
       window.parent.postMessage({

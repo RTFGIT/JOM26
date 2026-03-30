@@ -3,6 +3,8 @@
 // Uses ESM CDN imports to work on GitHub Pages without bundling
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 
 export const firebaseConfig = {
   apiKey: 'AIzaSyC8pzBOqExWyNNx3OOssPAAmC8XgcobO8M',
@@ -17,4 +19,10 @@ export const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-console.log('[JOM26] Firebase initialized, db ready');
+// App Check — verifies requests come from the real website, blocks scripts/abuse
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider('6LeYMZ4sAAAAAHiIPWUa8_2xkTYkF3QonBYgDUId'),
+  isTokenAutoRefreshEnabled: true
+});
+
+console.log('[JOM26] Firebase initialized with App Check, db ready');
