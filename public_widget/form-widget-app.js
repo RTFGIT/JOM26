@@ -750,7 +750,7 @@ function holdingModeClick() {
 }
 
 function startHoldingEndCountdown() {
-  var seconds = 15;
+  var seconds = 30;
   var countdownEl = document.getElementById('holding-reset-countdown');
 
   if (holdingResetTimer) clearTimeout(holdingResetTimer);
@@ -770,7 +770,7 @@ function startHoldingEndCountdown() {
     holdingCountdownInterval = null;
     widgetState.currentStep = 1;
     showStep(1);
-  }, 15000);
+  }, 30000);
 }
 
 function applyFormHoldingMode(holding) {

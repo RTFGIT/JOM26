@@ -509,6 +509,11 @@ function scrollFunction() {
 							      var patchEl = document.getElementById('jom26-patch-iframe');
 							      if (patchEl && patchEl.contentWindow) patchEl.contentWindow.postMessage(e.data, '*');
 							    }
+							    // Forward ADD_TO_PILE to patch widget (holding mode veg animation)
+							    if (e.data && e.data.type === 'ADD_TO_PILE') {
+							      var patchEl = document.getElementById('jom26-patch-iframe');
+							      if (patchEl && patchEl.contentWindow) patchEl.contentWindow.postMessage(e.data, '*');
+							    }
 							    // Forward SHOUTOUT_ENTRY to shoutout widget
 							    if (e.data && e.data.type === 'SHOUTOUT_ENTRY') {
 							      var shoutEl = document.getElementById('jom26-shoutout-iframe');
