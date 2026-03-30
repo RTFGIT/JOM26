@@ -169,6 +169,7 @@ SNACK</div>
   <script type="module">
     import { startLaunchConfigListener } from './patch-widget-listener.js';
 
+    let firstLoad = true;
     let labelsHidden = false;
 
     startLaunchConfigListener(({ campaignLive }) => {
@@ -176,15 +177,27 @@ SNACK</div>
       if (!container) return;
 
       if (campaignLive) {
-        // Delay reveal so it syncs with patch eruption completion (~3.5s)
-        if (labelsHidden) {
+        if (firstLoad) {
+          // Campaign is live on page load — ensure labels are visible immediately
+          container.classList.remove('holding-hidden');
+        } else if (labelsHidden) {
+          // Transitioning from holding → live — delay to sync with eruption
           setTimeout(() => { container.classList.remove('holding-hidden'); }, 3500);
-          labelsHidden = false;
         }
+        labelsHidden = false;
       } else {
-        container.classList.add('holding-hidden');
+        if (firstLoad) {
+          // Start hidden immediately with no transition flash
+          container.style.transition = 'none';
+          container.classList.add('holding-hidden');
+          // Re-enable transition after paint
+          requestAnimationFrame(() => { container.style.transition = ''; });
+        } else {
+          container.classList.add('holding-hidden');
+        }
         labelsHidden = true;
       }
+      firstLoad = false;
     });
   </script>
 </body>

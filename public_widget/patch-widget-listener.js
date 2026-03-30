@@ -62,15 +62,27 @@ export function startCelebrationConfigListener(updateFn) {
 }
 
 // ── Launch config listener — real-time holding/live state from admin console ──
+// A campaign is considered "effectively live" if campaign_live is true OR
+// the current time has passed the launch date/time. This ensures all widgets
+// auto-launch without requiring a Firestore write from the client.
+function isEffectivelyLive(data) {
+  if (data.campaign_live) return true;
+  const launchDate = data.launch_date || '2026-04-01';
+  const launchTime = data.launch_time || '09:00';
+  const target = new Date(launchDate + 'T' + launchTime);
+  return new Date() >= target;
+}
+
 export function startLaunchConfigListener(updateFn) {
   const ref = doc(db, 'public', 'launch-config');
   return onSnapshot(ref, (snap) => {
     const data = snap.data() || {};
     updateFn({
-      campaignLive:  data.campaign_live ?? false,
-      launchDate:    data.launch_date   ?? '2026-04-01',
-      launchTime:    data.launch_time   ?? '09:00',
-      holdingInterest: data.holding_interest ?? 0
+      campaignLive:     isEffectivelyLive(data),
+      campaignLiveFlag: data.campaign_live ?? false,
+      launchDate:       data.launch_date   ?? '2026-04-01',
+      launchTime:       data.launch_time   ?? '09:00',
+      holdingInterest:  data.holding_interest ?? 0
     });
   });
 }

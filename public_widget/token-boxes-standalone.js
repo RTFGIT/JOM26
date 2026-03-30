@@ -369,8 +369,8 @@ class TokenBoxes {
   // Triangle shape: apex (mouth) at center top, base spans wide at bottom
   static VOLCANO = {
     centerX: 642,       // canvas center (1284/2)
-    mouthY: 360,        // apex of the volcano (mouth)
-    baseY: 510,         // bottom of the volcano
+    mouthY: 320,        // apex of the volcano (mouth) — raised 40px
+    baseY: 470,         // bottom of the volcano — raised 40px
     baseHalfWidth: 380, // half-width of the base
     get slopeHeight() { return this.baseY - this.mouthY; }, // 150px
   };
