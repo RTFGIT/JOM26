@@ -69,6 +69,16 @@
     .token-box[data-box="4"] { background: linear-gradient(137deg, #39b083 0%, #1d9064 100%); }
     .token-box[data-box="5"] { background: linear-gradient(137deg, #075966 0%, #063941 100%); }
 
+    /* ── Holding mode — hide labels during pre-launch ──────────────── */
+    .labels-container {
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .labels-container.holding-hidden {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
     .box-label {
       font-family: 'AvenirBlack', sans-serif;
       font-size: 15.6px;
@@ -152,6 +162,30 @@ SNACK</div>
         scaleWidget();
       }
     })();
+  </script>
+
+  <!-- ── Launch config — hide labels during holding mode ───────────── -->
+  <script type="module" src="./widget-config.js"></script>
+  <script type="module">
+    import { startLaunchConfigListener } from './patch-widget-listener.js';
+
+    let labelsHidden = false;
+
+    startLaunchConfigListener(({ campaignLive }) => {
+      const container = document.querySelector('.labels-container');
+      if (!container) return;
+
+      if (campaignLive) {
+        // Delay reveal so it syncs with patch eruption completion (~3.5s)
+        if (labelsHidden) {
+          setTimeout(() => { container.classList.remove('holding-hidden'); }, 3500);
+          labelsHidden = false;
+        }
+      } else {
+        container.classList.add('holding-hidden');
+        labelsHidden = true;
+      }
+    });
   </script>
 </body>
 </html>

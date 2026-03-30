@@ -171,6 +171,45 @@
       animation: boxJiggle 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
+    /* ── Holding mode — hide boxes + logo during pre-launch ────────────── */
+    .holding-hidden {
+      opacity: 0 !important;
+      pointer-events: none;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    /* ── Countdown overlay — centred in the sky area ─────────────────── */
+    #holding-countdown {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    #countdown-days {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 72pt;
+      font-weight: normal;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(6, 57, 65, 0.6);
+      line-height: 1;
+    }
+
+    .countdown-label {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 14pt;
+      font-weight: normal;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(6, 57, 65, 0.5);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
     /* ── JOM logo — backmost layer in the sky area ───────────────────────── */
     #jom-logo {
       position: absolute;
@@ -193,6 +232,12 @@
   <div id="patch-scale-root">
 
     <div class="boxes-container">
+
+      <!-- Countdown overlay — shown during holding mode, hidden when live -->
+      <div id="holding-countdown" style="opacity:0; display:none;">
+        <div id="countdown-days">0</div>
+        <div class="countdown-label">DAYS TO LAUNCH</div>
+      </div>
 
       <!-- JOM logo — backmost layer (z-index:0), sits in the sky area behind tokens -->
       <img id="jom-logo" src="assets/Just-One-More-logo Transparent.png" alt="Just One More">
@@ -308,7 +353,7 @@
 
   <script type="module" src="./widget-config.js"></script>
   <script type="module">
-    import { startBoxTotaliserListener, startCelebrationConfigListener } from './patch-widget-listener.js';
+    import { startBoxTotaliserListener, startCelebrationConfigListener, startLaunchConfigListener } from './patch-widget-listener.js';
 
     function updateBoxesUI({ boxCounts, total, isUpdate, delta }) {
       const hasAnimation = isUpdate && delta && window.tokenBoxes &&
@@ -356,6 +401,78 @@
     startCelebrationConfigListener((config) => {
       if (window.JOM26TokenBoxes && typeof window.JOM26TokenBoxes.setCelebrationConfig === 'function') {
         window.JOM26TokenBoxes.setCelebrationConfig(config);
+      }
+    });
+
+    // ── Launch config — holding screen / go-live from admin console ──
+    let holdingActive = false;
+    let countdownInterval = null;
+
+    function updateCountdown(launchDate, launchTime) {
+      const el = document.getElementById('countdown-days');
+      if (!el) return;
+      const target = new Date(launchDate + 'T' + (launchTime || '09:00'));
+      const now = new Date();
+      const diffMs = target - now;
+      const days = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+      el.textContent = days;
+    }
+
+    function enterHoldingMode(launchDate, launchTime) {
+      if (holdingActive) return;
+      holdingActive = true;
+
+      // Hide boxes + logo
+      document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.add('holding-hidden'));
+
+      // Show countdown
+      const countdownEl = document.getElementById('holding-countdown');
+      if (countdownEl) {
+        countdownEl.style.display = 'block';
+        setTimeout(() => { countdownEl.style.opacity = '1'; }, 50);
+      }
+      updateCountdown(launchDate, launchTime);
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => updateCountdown(launchDate, launchTime), 60000);
+
+      // Tell token-boxes to enter holding mode (volcano pile)
+      if (window.tokenBoxes && typeof window.tokenBoxes.enterHoldingMode === 'function') {
+        window.tokenBoxes.enterHoldingMode();
+      }
+    }
+
+    function exitHoldingMode() {
+      if (!holdingActive) return;
+      holdingActive = false;
+
+      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+
+      // Trigger eruption — on complete, reveal boxes
+      if (window.tokenBoxes && typeof window.tokenBoxes.triggerEruption === 'function') {
+        window.tokenBoxes.onEruptionComplete = () => {
+          // Fade in boxes + logo
+          document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.remove('holding-hidden'));
+          // Hide countdown
+          const countdownEl = document.getElementById('holding-countdown');
+          if (countdownEl) {
+            countdownEl.style.opacity = '0';
+            setTimeout(() => { countdownEl.style.display = 'none'; }, 800);
+          }
+        };
+        window.tokenBoxes.triggerEruption();
+      } else {
+        // No eruption available — just reveal immediately
+        document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.remove('holding-hidden'));
+        const countdownEl = document.getElementById('holding-countdown');
+        if (countdownEl) { countdownEl.style.opacity = '0'; countdownEl.style.display = 'none'; }
+      }
+    }
+
+    startLaunchConfigListener(({ campaignLive, launchDate, launchTime }) => {
+      if (campaignLive) {
+        if (holdingActive) exitHoldingMode();
+      } else {
+        enterHoldingMode(launchDate, launchTime);
       }
     });
   </script>

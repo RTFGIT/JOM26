@@ -728,6 +728,11 @@ function holdingModeClick() {
     window.parent.postMessage({ type: 'ADD_TO_PILE', count: 3 }, '*');
   }
 
+  // Increment holding interest counter in Firestore
+  if (typeof window._incrementHoldingInterest === 'function') {
+    window._incrementHoldingInterest();
+  }
+
   // Show the holding-end step
   document.querySelectorAll('.form-step').forEach(function (step) {
     step.classList.remove('active');

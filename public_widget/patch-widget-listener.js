@@ -1,6 +1,6 @@
 
 import { db } from './widget-config.js';
-import { doc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { doc, onSnapshot, getDoc, setDoc, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 let previousBoxCounts = null;
 
@@ -59,6 +59,30 @@ export function startCelebrationConfigListener(updateFn) {
       mode2Threshold: data.mode2_threshold ?? 100
     });
   });
+}
+
+// ── Launch config listener — real-time holding/live state from admin console ──
+export function startLaunchConfigListener(updateFn) {
+  const ref = doc(db, 'public', 'launch-config');
+  return onSnapshot(ref, (snap) => {
+    const data = snap.data() || {};
+    updateFn({
+      campaignLive:  data.campaign_live ?? false,
+      launchDate:    data.launch_date   ?? '2026-04-01',
+      launchTime:    data.launch_time   ?? '09:00',
+      holdingInterest: data.holding_interest ?? 0
+    });
+  });
+}
+
+// ── Increment holding interest counter — called when user clicks "Add Veg" ──
+export async function incrementHoldingInterest() {
+  const ref = doc(db, 'public', 'launch-config');
+  try {
+    await setDoc(ref, { holding_interest: increment(1) }, { merge: true });
+  } catch (err) {
+    console.error('[JOM26] Failed to increment holding interest:', err);
+  }
 }
 
 export async function fetchSubmissionCount() {

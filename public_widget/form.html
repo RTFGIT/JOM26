@@ -749,6 +749,8 @@
   <script type="module">
     // Load pledge options from Firestore and override the hardcoded defaults
     import { loadPledgeOptions } from './form-widget-submit.js';
+    import { startLaunchConfigListener, incrementHoldingInterest } from './patch-widget-listener.js';
+
     (async () => {
       const opts = await loadPledgeOptions();
       if (opts && typeof livePledgeOptions !== 'undefined') {
@@ -757,6 +759,16 @@
         console.log('[JOM26] Pledge options loaded from Firestore:', opts.length, 'options');
       }
     })();
+
+    // Launch config — switch form between holding mode and live mode
+    startLaunchConfigListener(({ campaignLive }) => {
+      if (typeof applyFormHoldingMode === 'function') {
+        applyFormHoldingMode(!campaignLive);
+      }
+    });
+
+    // Expose incrementHoldingInterest so holdingModeClick() can call it
+    window._incrementHoldingInterest = incrementHoldingInterest;
   </script>
   <script nomodule>
     console.warn('ES modules not supported - using fallback mode');
