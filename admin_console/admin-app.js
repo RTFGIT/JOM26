@@ -6,7 +6,7 @@
  */
 
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, setDoc }
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, setDoc, onSnapshot }
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -109,6 +109,7 @@ onAuthStateChanged(auth, async (user) => {
   await loadSubmissions();
   loadCelebrationConfig();
   loadPledgeOptions();
+  loadLaunchConfig();
 });
 
 function showLogin() {
@@ -508,6 +509,105 @@ savePledgeOptsBtn.addEventListener('click', async () => {
   savePledgeOptsBtn.disabled = false;
   savePledgeOptsBtn.textContent = 'Save Pledge Options';
   setTimeout(() => { pledgeOptStatus.textContent = ''; }, 3000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Launch config (holding screen / go-live controls)
+// ─────────────────────────────────────────────────────────────────────────────
+const campaignLiveEl   = document.getElementById('campaign-live');
+const launchDateEl     = document.getElementById('launch-date');
+const launchTimeEl     = document.getElementById('launch-time');
+const liveIndicatorEl  = document.getElementById('campaign-live-indicator');
+const holdingCountEl   = document.getElementById('holding-interest-count');
+const saveLaunchBtn    = document.getElementById('save-launch-btn');
+const goLiveBtn        = document.getElementById('go-live-btn');
+const launchStatusEl   = document.getElementById('launch-save-status');
+
+function updateLiveIndicator(isLive) {
+  if (isLive) {
+    liveIndicatorEl.textContent = 'LIVE';
+    liveIndicatorEl.style.background = '#E8F5E9';
+    liveIndicatorEl.style.color = '#2E7D32';
+  } else {
+    liveIndicatorEl.textContent = 'HOLDING';
+    liveIndicatorEl.style.background = '#FFF3E0';
+    liveIndicatorEl.style.color = '#E65100';
+  }
+}
+
+async function loadLaunchConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'public', 'launch-config'));
+    const data = snap.exists() ? snap.data() : {};
+    campaignLiveEl.checked = data.campaign_live ?? false;
+    launchDateEl.value     = data.launch_date   ?? '2026-04-01';
+    launchTimeEl.value     = data.launch_time   ?? '09:00';
+    updateLiveIndicator(campaignLiveEl.checked);
+  } catch (err) {
+    console.error('Failed to load launch config:', err);
+  }
+
+  // Real-time listener for holding interest counter
+  onSnapshot(doc(db, 'public', 'launch-config'), (snap) => {
+    const data = snap.data() || {};
+    holdingCountEl.textContent = (data.holding_interest || 0).toLocaleString();
+    // Keep UI in sync if another admin changes it
+    campaignLiveEl.checked = data.campaign_live ?? false;
+    updateLiveIndicator(campaignLiveEl.checked);
+  });
+}
+
+campaignLiveEl.addEventListener('change', () => {
+  updateLiveIndicator(campaignLiveEl.checked);
+});
+
+saveLaunchBtn.addEventListener('click', async () => {
+  saveLaunchBtn.disabled = true;
+  saveLaunchBtn.textContent = 'Saving…';
+
+  const config = {
+    campaign_live: campaignLiveEl.checked,
+    launch_date:   launchDateEl.value,
+    launch_time:   launchTimeEl.value,
+  };
+
+  try {
+    // Merge so we don't overwrite holding_interest counter
+    await setDoc(doc(db, 'public', 'launch-config'), config, { merge: true });
+    launchStatusEl.textContent = '✓ Saved!';
+    launchStatusEl.style.color = '#2E7D32';
+  } catch (err) {
+    launchStatusEl.textContent = 'Error saving';
+    launchStatusEl.style.color = '#C62828';
+    console.error('Failed to save launch config:', err);
+  }
+
+  saveLaunchBtn.disabled = false;
+  saveLaunchBtn.textContent = 'Save Launch Settings';
+  setTimeout(() => { launchStatusEl.textContent = ''; }, 3000);
+});
+
+goLiveBtn.addEventListener('click', async () => {
+  if (!confirm('Go live now? This will switch all widgets from holding screen to live campaign mode.')) return;
+
+  goLiveBtn.disabled = true;
+  goLiveBtn.textContent = 'Going live…';
+
+  try {
+    await setDoc(doc(db, 'public', 'launch-config'), { campaign_live: true }, { merge: true });
+    campaignLiveEl.checked = true;
+    updateLiveIndicator(true);
+    launchStatusEl.textContent = '🚀 Campaign is LIVE!';
+    launchStatusEl.style.color = '#2E7D32';
+  } catch (err) {
+    launchStatusEl.textContent = 'Error going live';
+    launchStatusEl.style.color = '#C62828';
+    console.error('Failed to go live:', err);
+  }
+
+  goLiveBtn.disabled = false;
+  goLiveBtn.textContent = '🚀 Go Live Now';
+  setTimeout(() => { launchStatusEl.textContent = ''; }, 5000);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -369,6 +369,40 @@
         </div>
       </div>
 
+      <!-- Launch Controls -->
+      <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
+        <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">🚀 Launch Controls</h3>
+        <p style="font-size:0.85rem; color:#757575; margin-bottom:0.75rem;">
+          Set the campaign launch date and time. While the campaign is not live, widgets show a holding screen with a countdown.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; margin-bottom:0.75rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer; font-weight:600;">
+            <input type="checkbox" id="campaign-live"> Campaign Live
+          </label>
+          <span id="campaign-live-indicator" style="font-size:0.85rem; padding:0.25rem 0.75rem; border-radius:20px; font-weight:500;">—</span>
+          <span style="color:#E0E0E0; font-size:1.2rem;">|</span>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem;">
+            Launch Date
+            <input type="date" id="launch-date" value="2026-04-01"
+              style="padding:0.4rem 0.5rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit;">
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.9rem;">
+            Time
+            <input type="time" id="launch-time" value="09:00"
+              style="padding:0.4rem 0.5rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit;">
+          </label>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+          <div style="font-size:0.85rem; color:#757575;">
+            Pre-launch interest clicks: <strong id="holding-interest-count" style="color:#1565C0;">—</strong>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-primary btn-sm" id="save-launch-btn">Save Launch Settings</button>
+          <button class="btn btn-success btn-sm" id="go-live-btn">🚀 Go Live Now</button>
+          <span id="launch-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
+        </div>
+      </div>
+
       <!-- Pledge Options -->
       <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
         <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">📝 Pledge Options</h3>
