@@ -128,9 +128,38 @@ function showStep(stepNumber) {
 
 /**
  * Shared auto-message and URL used by all social-share helpers.
+ * Defaults are overridden by Firestore public/share-config if available.
  */
 var SHARE_TEXT = 'Join the Just One More Campaign and make your Veg Pledge today! foodwiseleeds.org/project/just-one-more #justonemore';
 var SHARE_URL  = 'https://foodwiseleeds.org/project/just-one-more';
+
+/**
+ * Load share config from Firestore (public/share-config).
+ * Updates SHARE_TEXT, SHARE_URL, and the Bluesky direct link.
+ */
+function loadShareConfig() {
+  if (window.JOM && window.JOM._db) {
+    var firestore = window.JOM._db;
+    // Use dynamic import approach — widget-config.js already loaded Firestore
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(function(mod) {
+      mod.getDoc(mod.doc(firestore, 'public', 'share-config')).then(function(snap) {
+        if (snap.exists()) {
+          var data = snap.data();
+          if (data.share_text) SHARE_TEXT = data.share_text;
+          if (data.share_url)  SHARE_URL  = data.share_url;
+          // Update Bluesky direct link
+          var bskyLink = document.getElementById('bluesky-share-link');
+          if (bskyLink) {
+            bskyLink.href = 'https://bsky.app/intent/compose?text=' + encodeURIComponent(SHARE_TEXT);
+          }
+          console.log('[JOM26] Share config loaded from Firestore');
+        }
+      }).catch(function(err) {
+        console.warn('[JOM26] Could not load share config:', err);
+      });
+    });
+  }
+}
 
 /**
  * Show a toast telling the user the message has been copied to their

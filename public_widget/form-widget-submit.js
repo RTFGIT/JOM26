@@ -142,3 +142,4 @@ export async function loadPledgeOptions() {
 // Global hook for Option C (F1): your existing form-widget-app.js can call this
 window.JOM = window.JOM || {};
 window.JOM.submitPledgeWithFirestore = async (payload) => submitPledge(payload);
+window.JOM._db = db;

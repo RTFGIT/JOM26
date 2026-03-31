@@ -699,7 +699,7 @@
               </button>
 
               <!-- Bluesky -->
-              <a class="share-btn share-bluesky"
+              <a class="share-btn share-bluesky" id="bluesky-share-link"
                  href="https://bsky.app/intent/compose?text=Join+the+Just+One+More+Campaign+and+make+your+Veg+Pledge+today!+foodwiseleeds.org%2Fproject%2Fjust-one-more+%23justonemore"
                  target="_blank" rel="noopener" aria-label="Share to Bluesky">
                 <svg viewBox="0 0 568 501" width="15" height="15" fill="currentColor" aria-hidden="true">
@@ -771,6 +771,8 @@
         opts.forEach(o => livePledgeOptions.push(o));
         console.log('[JOM26] Pledge options loaded from Firestore:', opts.length, 'options');
       }
+      // Load share message config (updates SHARE_TEXT, SHARE_URL, Bluesky link)
+      if (typeof loadShareConfig === 'function') loadShareConfig();
     })();
 
     // Launch config — switch form between holding mode and live mode
