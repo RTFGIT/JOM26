@@ -363,17 +363,31 @@
           el.style.width      = designW + 'px';
           el.style.paddingTop = (isMobile ? MOBILE_SKY : 331) + 'px';
 
-          // Main logo: smaller + repositioned on mobile
+          // Main logo: smaller on mobile, always centred on box 3
           var logo = document.getElementById('jom-logo');
           if (logo) {
             logo.style.height = isMobile ? '120px' : '200px';
             logo.style.top    = isMobile ? '40px'  : '66px';
+            logo.style.left   = (designW / 2) + 'px';
           }
 
-          // Logo copies: smaller on mobile to match main logo scaling
+          // Logo copies: reposition to match box centres at current design width
+          var BOX_W = 156;
+          var gap = (designW - 5 * BOX_W) / 4;
+          var boxCentres = [
+            BOX_W / 2,
+            BOX_W / 2 + 1 * (BOX_W + gap),
+            0, // skip box 3 (main logo)
+            BOX_W / 2 + 3 * (BOX_W + gap),
+            BOX_W / 2 + 4 * (BOX_W + gap)
+          ];
           document.querySelectorAll('.jom-logo-copy').forEach(function (img) {
-            img.style.height = isMobile ? '96px' : '160px';
-            img.style.top    = isMobile ? '52px' : '86px';
+            var box = parseInt(img.getAttribute('data-box'));
+            if (box >= 1 && box <= 5 && boxCentres[box - 1]) {
+              img.style.left = boxCentres[box - 1] + 'px';
+            }
+            img.style.height = isMobile ? '96px'  : '160px';
+            img.style.top    = isMobile ? '52px'  : '86px';
           });
 
           // Counter text: larger on mobile for readability
