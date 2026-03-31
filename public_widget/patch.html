@@ -174,7 +174,7 @@
     /* ── Holding mode — hide boxes + logo during pre-launch ────────────── */
     /* Transition lives on the elements so it applies in BOTH directions
        (fade-out when adding .holding-hidden, fade-in when removing it). */
-    .boxes-row, #jom-logo {
+    .boxes-row, #jom-logo, .jom-logo-copy {
       transition: opacity 0.8s ease-in-out;
     }
 
@@ -216,7 +216,7 @@
     /* ── JOM logo — backmost layer in the sky area ───────────────────────── */
     #jom-logo {
       position: absolute;
-      top: 60px;
+      top: 66px;
       left: 50%;
       transform: translateX(-50%);
       height: 200px;
@@ -225,6 +225,21 @@
       opacity: 0.7;
       pointer-events: none;
     }
+
+    /* ── JOM logo copies — smaller, above outer boxes ─────────────────── */
+    .jom-logo-copy {
+      position: absolute;
+      top: 86px;
+      height: 160px;
+      width: auto;
+      z-index: 0;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+    .jom-logo-copy[data-box="1"] { left: 78px;   opacity: 0.21; }
+    .jom-logo-copy[data-box="2"] { left: 360px;  opacity: 0.42; }
+    .jom-logo-copy[data-box="4"] { left: 924px;  opacity: 0.42; }
+    .jom-logo-copy[data-box="5"] { left: 1206px; opacity: 0.21; }
   </style>
 </head>
 <body>
@@ -244,6 +259,10 @@
 
       <!-- JOM logo — backmost layer (z-index:0), sits in the sky area behind tokens -->
       <img id="jom-logo" src="assets/Just-One-More-logo Transparent.png" alt="Just One More">
+      <img class="jom-logo-copy" data-box="1" src="assets/Just-One-More-logo Transparent.png" alt="">
+      <img class="jom-logo-copy" data-box="2" src="assets/Just-One-More-logo Transparent.png" alt="">
+      <img class="jom-logo-copy" data-box="4" src="assets/Just-One-More-logo Transparent.png" alt="">
+      <img class="jom-logo-copy" data-box="5" src="assets/Just-One-More-logo Transparent.png" alt="">
 
       <!-- Canvas — above the boxes (z-index:2); renders falling veggie tokens -->
       <canvas id="tokenCanvas"></canvas>
@@ -487,7 +506,7 @@
       holdingActive = true;
 
       // Hide boxes + logo
-      document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.add('holding-hidden'));
+      document.querySelectorAll('.boxes-row, #jom-logo, .jom-logo-copy').forEach(el => el.classList.add('holding-hidden'));
 
       // Show countdown
       const countdownEl = document.getElementById('holding-countdown');
@@ -516,7 +535,7 @@
       if (window.tokenBoxes && typeof window.tokenBoxes.triggerEruption === 'function') {
         window.tokenBoxes.onEruptionComplete = () => {
           // Fade in boxes + logo
-          document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.remove('holding-hidden'));
+          document.querySelectorAll('.boxes-row, #jom-logo, .jom-logo-copy').forEach(el => el.classList.remove('holding-hidden'));
           // Hide countdown
           const countdownEl = document.getElementById('holding-countdown');
           if (countdownEl) {
@@ -527,7 +546,7 @@
         window.tokenBoxes.triggerEruption();
       } else {
         // No eruption available — just reveal immediately
-        document.querySelectorAll('.boxes-row, #jom-logo').forEach(el => el.classList.remove('holding-hidden'));
+        document.querySelectorAll('.boxes-row, #jom-logo, .jom-logo-copy').forEach(el => el.classList.remove('holding-hidden'));
         const countdownEl = document.getElementById('holding-countdown');
         if (countdownEl) { countdownEl.style.opacity = '0'; countdownEl.style.display = 'none'; }
       }
