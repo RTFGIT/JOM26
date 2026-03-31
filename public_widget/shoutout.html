@@ -166,5 +166,21 @@
   </div>
 
   <script type="module" src="./shoutout-widget.js"></script>
+  <script>
+    (function () {
+      function notifyHeight() {
+        var widget = document.querySelector('.shoutout-widget');
+        if (!widget) return;
+        var h = widget.offsetHeight;
+        try { window.parent.postMessage({ type: 'SHOUTOUT_HEIGHT', height: h }, '*'); } catch (e) {}
+      }
+      window.addEventListener('resize', notifyHeight);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', notifyHeight);
+      } else {
+        notifyHeight();
+      }
+    })();
+  </script>
 </body>
 </html>
