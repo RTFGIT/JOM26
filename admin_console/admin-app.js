@@ -573,24 +573,32 @@ saveBannedWordsBtn.addEventListener('click', async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Social share message
 // ─────────────────────────────────────────────────────────────────────────────
-const shareTextInput     = document.getElementById('share-text-input');
-const shareUrlInput      = document.getElementById('share-url-input');
-const saveShareBtn       = document.getElementById('save-share-config-btn');
-const shareConfigStatus  = document.getElementById('share-config-save-status');
+const shareTextInput        = document.getElementById('share-text-input');
+const shareUrlInput         = document.getElementById('share-url-input');
+const findOutMoreTextInput  = document.getElementById('find-out-more-text-input');
+const findOutMoreUrlInput   = document.getElementById('find-out-more-url-input');
+const saveShareBtn          = document.getElementById('save-share-config-btn');
+const shareConfigStatus     = document.getElementById('share-config-save-status');
 
-const DEFAULT_SHARE_TEXT = 'Join the Just One More Campaign and make your Veg Pledge today! foodwiseleeds.org/project/just-one-more #justonemore';
-const DEFAULT_SHARE_URL  = 'https://foodwiseleeds.org/project/just-one-more';
+const DEFAULT_SHARE_TEXT        = 'Join the Just One More Campaign and make your Veg Pledge today! foodwiseleeds.org/project/just-one-more #justonemore';
+const DEFAULT_SHARE_URL         = 'https://foodwiseleeds.org/project/just-one-more';
+const DEFAULT_FIND_OUT_MORE_TEXT = 'Find Out More';
+const DEFAULT_FIND_OUT_MORE_URL  = 'https://foodwiseleeds.org/project/just-one-more';
 
 async function loadShareConfig() {
   try {
     const snap = await getDoc(doc(db, 'public', 'share-config'));
     const data = snap.exists() ? snap.data() : {};
-    shareTextInput.value = data.share_text || DEFAULT_SHARE_TEXT;
-    shareUrlInput.value  = data.share_url  || DEFAULT_SHARE_URL;
+    shareTextInput.value       = data.share_text        || DEFAULT_SHARE_TEXT;
+    shareUrlInput.value        = data.share_url         || DEFAULT_SHARE_URL;
+    findOutMoreTextInput.value = data.find_out_more_text || DEFAULT_FIND_OUT_MORE_TEXT;
+    findOutMoreUrlInput.value  = data.find_out_more_url  || DEFAULT_FIND_OUT_MORE_URL;
   } catch (err) {
     console.error('Failed to load share config:', err);
-    shareTextInput.value = DEFAULT_SHARE_TEXT;
-    shareUrlInput.value  = DEFAULT_SHARE_URL;
+    shareTextInput.value       = DEFAULT_SHARE_TEXT;
+    shareUrlInput.value        = DEFAULT_SHARE_URL;
+    findOutMoreTextInput.value = DEFAULT_FIND_OUT_MORE_TEXT;
+    findOutMoreUrlInput.value  = DEFAULT_FIND_OUT_MORE_URL;
   }
 }
 
@@ -598,14 +606,16 @@ saveShareBtn.addEventListener('click', async () => {
   saveShareBtn.disabled = true;
   saveShareBtn.textContent = 'Saving…';
 
-  const shareText = shareTextInput.value.trim();
-  const shareUrl  = shareUrlInput.value.trim();
+  const shareText       = shareTextInput.value.trim();
+  const shareUrl        = shareUrlInput.value.trim();
+  const findOutMoreText = findOutMoreTextInput.value.trim() || DEFAULT_FIND_OUT_MORE_TEXT;
+  const findOutMoreUrl  = findOutMoreUrlInput.value.trim()  || DEFAULT_FIND_OUT_MORE_URL;
 
   if (!shareText) {
     shareConfigStatus.textContent = 'Share text cannot be empty';
     shareConfigStatus.style.color = '#C62828';
     saveShareBtn.disabled = false;
-    saveShareBtn.textContent = 'Save Share Message';
+    saveShareBtn.textContent = 'Save End Card Settings';
     setTimeout(() => { shareConfigStatus.textContent = ''; }, 3000);
     return;
   }
@@ -613,7 +623,9 @@ saveShareBtn.addEventListener('click', async () => {
   try {
     await setDoc(doc(db, 'public', 'share-config'), {
       share_text: shareText,
-      share_url: shareUrl
+      share_url: shareUrl,
+      find_out_more_text: findOutMoreText,
+      find_out_more_url: findOutMoreUrl
     });
     shareConfigStatus.textContent = '✓ Saved!';
     shareConfigStatus.style.color = '#2E7D32';
@@ -624,7 +636,7 @@ saveShareBtn.addEventListener('click', async () => {
   }
 
   saveShareBtn.disabled = false;
-  saveShareBtn.textContent = 'Save Share Message';
+  saveShareBtn.textContent = 'Save End Card Settings';
   setTimeout(() => { shareConfigStatus.textContent = ''; }, 3000);
 });
 
