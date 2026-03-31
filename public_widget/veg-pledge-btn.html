@@ -111,27 +111,47 @@
   ──────────────────────────────────────────────────────────────────────── -->
   <script>
     (function () {
-      var DESIGN_W = 1284;
-      var DESIGN_H = 78;
-      var PADDING  = 10;   // px of transparent space on each side
+      var DESKTOP_W = 1284;
+      var DESKTOP_H = 78;
+      var MOBILE_W  = 700;
+      var MOBILE_H  = 86;
+      var MOBILE_BP = 600;
+      var PADDING   = 10;
+      var lastMobile = null;
 
       function scaleWidget() {
         var el   = document.querySelector('.btn-container');
         var root = document.getElementById('btn-scale-root');
         if (!el || !root) return;
 
-        var scale   = (window.innerWidth - 2 * PADDING) / DESIGN_W;
-        var scaledH = Math.ceil(DESIGN_H * scale);
+        var isMobile = window.innerWidth <= MOBILE_BP;
+        var designW  = isMobile ? MOBILE_W  : DESKTOP_W;
+        var designH  = isMobile ? MOBILE_H  : DESKTOP_H;
+
+        if (isMobile !== lastMobile) {
+          lastMobile = isMobile;
+          el.style.width = designW + 'px';
+          el.style.height = designH + 'px';
+
+          var btn = document.querySelector('.pledge-btn');
+          if (btn) {
+            btn.style.width       = isMobile ? '480px'  : '380px';
+            btn.style.height      = isMobile ? '66px'   : '58px';
+            btn.style.fontSize    = isMobile ? '26px'   : '22px';
+            btn.style.borderRadius = isMobile ? '33px'  : '29px';
+          }
+        }
+
+        var scale   = (window.innerWidth - 2 * PADDING) / designW;
+        var scaledH = Math.ceil(designH * scale);
 
         el.style.left      = PADDING + 'px';
         el.style.transform = 'scale(' + scale + ')';
 
-        // Set the root wrapper — and both html and body — to the scaled height
         root.style.height                     = scaledH + 'px';
         document.body.style.height            = scaledH + 'px';
         document.documentElement.style.height = scaledH + 'px';
 
-        // Notify the parent page so it can resize the <iframe> element.
         try { window.parent.postMessage({ type: 'BTN_HEIGHT', height: scaledH }, '*'); } catch (e) {}
       }
 

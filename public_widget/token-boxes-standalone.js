@@ -35,6 +35,12 @@ class TokenBoxes {
     this._holdingFrame = 0;
     this.onEruptionComplete = null; // callback when eruption finishes
 
+    // ── Configurable design dimensions (overridden by setMobileLayout) ──
+    this.designWidth  = 1284;
+    this.designHeight = 514;
+    this.skyH         = 331;
+    this._updateVolcano();
+
     // ── Preload all veggie token images ──────────────────────────────
     this.tokenImages = this._loadTokenImages();
 
@@ -104,21 +110,44 @@ class TokenBoxes {
   // ── Canvas sizing ────────────────────────────────────────────────────
   resize() {
     const ratio  = window.devicePixelRatio || 1;
-    // Fixed design dimensions — must match .boxes-container CSS (1284 × 514 px).
-    // Do NOT read clientWidth/clientHeight: the container may report collapsed
-    // height before layout completes, or the iframe viewport may be narrower
-    // than the 1284 px design width, causing getBoundingClientRect-style bugs.
-    const width  = 1284;
-    const height = 514;
+    const width  = this.designWidth;
+    const height = this.designHeight;
 
     this.canvas.width  = width  * ratio;
     this.canvas.height = height * ratio;
     this.canvas.style.width  = width  + 'px';
     this.canvas.style.height = height + 'px';
 
-    this.ctx.scale(ratio, ratio);
+    this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     this.width  = width;
     this.height = height;
+  }
+
+  // ── Mobile layout switching ─────────────────────────────────────────
+  setMobileLayout(config) {
+    this.designWidth  = config.width  || 900;
+    this.designHeight = config.height || 380;
+    this.skyH         = config.skyH   || 200;
+    this._updateVolcano();
+    this.resize();
+  }
+
+  setDesktopLayout() {
+    this.designWidth  = 1284;
+    this.designHeight = 514;
+    this.skyH         = 331;
+    this._updateVolcano();
+    this.resize();
+  }
+
+  _updateVolcano() {
+    this._volcano = {
+      centerX: this.designWidth / 2,
+      mouthY: this.skyH - 11,
+      baseY: this.skyH + 139,
+      baseHalfWidth: Math.min(380, this.designWidth * 0.3),
+    };
+    this._volcano.slopeHeight = this._volcano.baseY - this._volcano.mouthY;
   }
 
   // ── On-demand animation loop ─────────────────────────────────────────
@@ -170,8 +199,8 @@ class TokenBoxes {
     //   gap (space-between)  : (1284 − 5×156) / 4 = 126 px
     const BOX_W   = 156;
     const BOX_H   = 113;
-    const GAP     = (1284 - 5 * BOX_W) / 4; // 126 px
-    const SKY_H   = 331; // matches .boxes-container padding-top in patch.html
+    const GAP     = (this.designWidth - 5 * BOX_W) / 4;
+    const SKY_H   = this.skyH;
     const idx     = Math.min(5, Math.max(1, boxNumber)) - 1;
 
     const targetX = BOX_W / 2 + idx * (BOX_W + GAP); // horizontal centre
@@ -252,8 +281,8 @@ class TokenBoxes {
     const CELEBRATION_COUNT = 10;
     const BOX_W   = 156;
     const BOX_H   = 113;
-    const GAP     = (1284 - 5 * BOX_W) / 4;
-    const SKY_H   = 331;
+    const GAP     = (this.designWidth - 5 * BOX_W) / 4;
+    const SKY_H   = this.skyH;
     const idx     = Math.min(5, Math.max(1, boxNumber)) - 1;
 
     const originX = BOX_W / 2 + idx * (BOX_W + GAP);
@@ -378,8 +407,8 @@ class TokenBoxes {
   // Given a Y position on the volcano, return the max X offset from center.
   // The slope starts a margin below the mouth (tokens need room to arc).
   _volcanoWidthAtY(y) {
-    const V = TokenBoxes.VOLCANO;
-    const slopeStartY = V.mouthY + 25; // match SLOPE_MARGIN in rolling physics
+    const V = this._volcano;
+    const slopeStartY = V.mouthY + 25;
     if (y <= slopeStartY) return 0;
     if (y >= V.baseY) return V.baseHalfWidth;
     const t = (y - slopeStartY) / (V.baseY - slopeStartY);
@@ -402,7 +431,7 @@ class TokenBoxes {
 
   // Build initial static pile in a triangular volcano shape
   _buildVolcanoPile(count) {
-    const V = TokenBoxes.VOLCANO;
+    const V = this._volcano;
     for (let i = 0; i < count; i++) {
       const img = this.tokenImages[Math.floor(Math.random() * this.tokenImages.length)];
       // Random Y weighted toward the base (more tokens at bottom)
@@ -421,7 +450,7 @@ class TokenBoxes {
 
   // Spawn a token from the volcano mouth that rolls down a slope
   _spawnFromMouth() {
-    const V = TokenBoxes.VOLCANO;
+    const V = this._volcano;
     const img = this.tokenImages[Math.floor(Math.random() * this.tokenImages.length)];
 
     // Pop upward from the mouth, then arc to one side
@@ -489,7 +518,7 @@ class TokenBoxes {
 
   _renderHolding() {
     const { ctx, width, height } = this;
-    const V = TokenBoxes.VOLCANO;
+    const V = this._volcano;
     this._holdingFrame++;
     ctx.clearRect(0, 0, width, height);
 
@@ -686,7 +715,7 @@ class TokenBoxes {
     // Once a token crosses into the box area it is simply not painted —
     // it appears to enter the box and vanish. Physics keep running until
     // progress >= 1 so the counter still increments at the right time.
-    const SKY_H = 350; // tokens travel 20 px into the box face before disappearing
+    const SKY_H = this.skyH + 19; // tokens travel 20 px into the box face before disappearing
 
     // In holding mode the holding renderer owns the canvas
     if (this.holdingMode) return;

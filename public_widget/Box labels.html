@@ -133,17 +133,38 @@ SNACK</div>
   <!-- ── Responsive scaling ─────────────────────────────────────────── -->
   <script>
     (function () {
-      var DESIGN_W = 1284;
-      var DESIGN_H = 65;
-      var PADDING  = 10;
+      var DESKTOP_W = 1284;
+      var DESKTOP_H = 65;
+      var MOBILE_W  = 900;
+      var MOBILE_H  = 80;
+      var MOBILE_BP = 600;
+      var PADDING   = 10;
+      var lastMobile = null;
 
       function scaleWidget() {
         var el   = document.querySelector('.labels-container');
         var root = document.getElementById('labels-scale-root');
         if (!el || !root) return;
 
-        var scale   = (window.innerWidth - 2 * PADDING) / DESIGN_W;
-        var scaledH = Math.ceil(DESIGN_H * scale);
+        var isMobile = window.innerWidth <= MOBILE_BP;
+        var designW  = isMobile ? MOBILE_W  : DESKTOP_W;
+        var designH  = isMobile ? MOBILE_H  : DESKTOP_H;
+
+        if (isMobile !== lastMobile) {
+          lastMobile = isMobile;
+          el.style.width  = designW + 'px';
+          el.style.height = designH + 'px';
+
+          document.querySelectorAll('.token-box').forEach(function (box) {
+            box.style.height = isMobile ? '70px' : '55px';
+          });
+          document.querySelectorAll('.box-label').forEach(function (lbl) {
+            lbl.style.fontSize = isMobile ? '22px' : '15.6px';
+          });
+        }
+
+        var scale   = (window.innerWidth - 2 * PADDING) / designW;
+        var scaledH = Math.ceil(designH * scale);
 
         el.style.left      = PADDING + 'px';
         el.style.transform = 'scale(' + scale + ')';
