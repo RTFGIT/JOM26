@@ -363,17 +363,18 @@
           el.style.width      = designW + 'px';
           el.style.paddingTop = (isMobile ? MOBILE_SKY : 331) + 'px';
 
-          // Logo copies: hide on mobile
-          document.querySelectorAll('.jom-logo-copy').forEach(function (img) {
-            img.style.display = isMobile ? 'none' : '';
-          });
-
           // Main logo: smaller + repositioned on mobile
           var logo = document.getElementById('jom-logo');
           if (logo) {
             logo.style.height = isMobile ? '120px' : '200px';
             logo.style.top    = isMobile ? '40px'  : '66px';
           }
+
+          // Logo copies: smaller on mobile to match main logo scaling
+          document.querySelectorAll('.jom-logo-copy').forEach(function (img) {
+            img.style.height = isMobile ? '96px' : '160px';
+            img.style.top    = isMobile ? '52px' : '86px';
+          });
 
           // Counter text: larger on mobile for readability
           document.querySelectorAll('.counter-value').forEach(function (cv) {
