@@ -119,6 +119,7 @@ onAuthStateChanged(auth, async (user) => {
   loadCelebrationConfig();
   loadPledgeOptions();
   loadBannedWords();
+  loadShareConfig();
   loadLaunchConfig();
 });
 
@@ -567,6 +568,64 @@ saveBannedWordsBtn.addEventListener('click', async () => {
   saveBannedWordsBtn.disabled = false;
   saveBannedWordsBtn.textContent = 'Save Banned Words';
   setTimeout(() => { bannedWordsStatus.textContent = ''; }, 3000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Social share message
+// ─────────────────────────────────────────────────────────────────────────────
+const shareTextInput     = document.getElementById('share-text-input');
+const shareUrlInput      = document.getElementById('share-url-input');
+const saveShareBtn       = document.getElementById('save-share-config-btn');
+const shareConfigStatus  = document.getElementById('share-config-save-status');
+
+const DEFAULT_SHARE_TEXT = 'Join the Just One More Campaign and make your Veg Pledge today! foodwiseleeds.org/project/just-one-more #justonemore';
+const DEFAULT_SHARE_URL  = 'https://foodwiseleeds.org/project/just-one-more';
+
+async function loadShareConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'public', 'share-config'));
+    const data = snap.exists() ? snap.data() : {};
+    shareTextInput.value = data.share_text || DEFAULT_SHARE_TEXT;
+    shareUrlInput.value  = data.share_url  || DEFAULT_SHARE_URL;
+  } catch (err) {
+    console.error('Failed to load share config:', err);
+    shareTextInput.value = DEFAULT_SHARE_TEXT;
+    shareUrlInput.value  = DEFAULT_SHARE_URL;
+  }
+}
+
+saveShareBtn.addEventListener('click', async () => {
+  saveShareBtn.disabled = true;
+  saveShareBtn.textContent = 'Saving…';
+
+  const shareText = shareTextInput.value.trim();
+  const shareUrl  = shareUrlInput.value.trim();
+
+  if (!shareText) {
+    shareConfigStatus.textContent = 'Share text cannot be empty';
+    shareConfigStatus.style.color = '#C62828';
+    saveShareBtn.disabled = false;
+    saveShareBtn.textContent = 'Save Share Message';
+    setTimeout(() => { shareConfigStatus.textContent = ''; }, 3000);
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, 'public', 'share-config'), {
+      share_text: shareText,
+      share_url: shareUrl
+    });
+    shareConfigStatus.textContent = '✓ Saved!';
+    shareConfigStatus.style.color = '#2E7D32';
+  } catch (err) {
+    shareConfigStatus.textContent = 'Error saving';
+    shareConfigStatus.style.color = '#C62828';
+    console.error('Failed to save share config:', err);
+  }
+
+  saveShareBtn.disabled = false;
+  saveShareBtn.textContent = 'Save Share Message';
+  setTimeout(() => { shareConfigStatus.textContent = ''; }, 3000);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
