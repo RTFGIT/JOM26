@@ -152,6 +152,13 @@ function loadShareConfig() {
           if (bskyLink) {
             bskyLink.href = 'https://bsky.app/intent/compose?text=' + encodeURIComponent(SHARE_TEXT);
           }
+          // Update all Find Out More buttons
+          if (data.find_out_more_text || data.find_out_more_url) {
+            document.querySelectorAll('.find-out-more-btn').forEach(function(btn) {
+              if (data.find_out_more_text) btn.textContent = data.find_out_more_text;
+              if (data.find_out_more_url)  btn.href = data.find_out_more_url;
+            });
+          }
           console.log('[JOM26] Share config loaded from Firestore');
         }
       }).catch(function(err) {
