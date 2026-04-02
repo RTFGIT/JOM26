@@ -819,8 +819,16 @@ function startHoldingEndCountdown() {
     clearInterval(holdingCountdownInterval);
     holdingResetTimer = null;
     holdingCountdownInterval = null;
+    // Fully hide the holding-end card and reset to step 1
+    var holdingEnd = document.querySelector('.form-step[data-step="holding-end"]');
+    if (holdingEnd) {
+      holdingEnd.classList.remove('active');
+      holdingEnd.setAttribute('aria-hidden', 'true');
+      holdingEnd.style.display = '';
+    }
     widgetState.currentStep = 1;
     showStep(1);
+    notifyHeight();
   }, 30000);
 }
 
