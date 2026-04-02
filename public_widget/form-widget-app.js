@@ -838,14 +838,17 @@ function applyFormHoldingMode(holding) {
     btn.textContent = 'MAKE YOUR VEG PLEDGE!';
     btn.setAttribute('onclick', 'nextStep()');
     btn.setAttribute('aria-label', 'Make your veg pledge - click to begin');
-    // If showing holding-end step, go back to step 1
+    // If showing holding-end step, hide it and go back to step 1
     var holdingEnd = document.querySelector('.form-step[data-step="holding-end"]');
-    if (holdingEnd && holdingEnd.classList.contains('active')) {
-      if (holdingResetTimer) clearTimeout(holdingResetTimer);
-      if (holdingCountdownInterval) clearInterval(holdingCountdownInterval);
-      widgetState.currentStep = 1;
-      showStep(1);
+    if (holdingResetTimer) clearTimeout(holdingResetTimer);
+    if (holdingCountdownInterval) clearInterval(holdingCountdownInterval);
+    if (holdingEnd) {
+      holdingEnd.classList.remove('active');
+      holdingEnd.setAttribute('aria-hidden', 'true');
+      holdingEnd.style.display = '';
     }
+    widgetState.currentStep = 1;
+    showStep(1);
   }
 }
 

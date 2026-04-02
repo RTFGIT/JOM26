@@ -130,6 +130,7 @@ class TokenBoxes {
     this.skyH         = config.skyH   || 200;
     this._updateVolcano();
     this.resize();
+    this._rebuildPileIfHolding();
   }
 
   setDesktopLayout() {
@@ -138,6 +139,16 @@ class TokenBoxes {
     this.skyH         = 331;
     this._updateVolcano();
     this.resize();
+    this._rebuildPileIfHolding();
+  }
+
+  // Rebuild the pile when layout changes during holding mode
+  _rebuildPileIfHolding() {
+    if (!this.holdingMode || this.eruptionPhase !== 'none') return;
+    const count = this.pileTokens.length || 80;
+    this.pileTokens = [];
+    this.rollingTokens = [];
+    this._buildVolcanoPile(count);
   }
 
   _updateVolcano() {
