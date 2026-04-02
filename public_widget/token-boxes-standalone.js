@@ -37,7 +37,7 @@ class TokenBoxes {
 
     // ── Configurable design dimensions (overridden by setMobileLayout) ──
     this.designWidth  = 1284;
-    this.designHeight = 514;
+    this.designHeight = 544;
     this.skyH         = 331;
     this._updateVolcano();
 
@@ -134,7 +134,7 @@ class TokenBoxes {
 
   setDesktopLayout() {
     this.designWidth  = 1284;
-    this.designHeight = 514;
+    this.designHeight = 544;
     this.skyH         = 331;
     this._updateVolcano();
     this.resize();

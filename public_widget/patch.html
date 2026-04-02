@@ -53,7 +53,7 @@
       top: 0;
       left: 0;
       width: 1284px;
-      height: 514px;
+      height: 544px;
       background: transparent;
       padding-top: 331px;
       padding-bottom: 10px;
@@ -126,15 +126,17 @@
       z-index: 1;
     }
 
-    /* Rectangle 2 — 156 × 60 px white counter, rounded bottom corners */
+    /* Rectangle 2 — 156 × 90 px white counter, rounded bottom corners */
     .box-counter {
       width: 156px;
-      height: 60px;
+      height: 90px;
       background: #ffffff;
       border-radius: 0 0 14px 14px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 0px;
     }
 
     .counter-value {
@@ -143,6 +145,17 @@
       font-weight: normal;
       color: #063941;
       line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .counter-label {
+      font-family: 'AvenirBlack', sans-serif;
+      font-size: 15.6px;
+      font-weight: normal;
+      color: #063941;
+      line-height: 1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     /* ── Box jiggle animation — triggered when a token lands ──────────────
@@ -275,6 +288,7 @@
           </div>
           <div class="box-counter">
             <div class="counter-value" id="box1-count">0</div>
+            <div class="counter-label">Pledges</div>
           </div>
         </div>
         <div class="box-wrapper">
@@ -283,6 +297,7 @@
           </div>
           <div class="box-counter">
             <div class="counter-value" id="box2-count">0</div>
+            <div class="counter-label">Pledges</div>
           </div>
         </div>
         <div class="box-wrapper">
@@ -291,6 +306,7 @@
           </div>
           <div class="box-counter">
             <div class="counter-value" id="box3-count">0</div>
+            <div class="counter-label">Pledges</div>
           </div>
         </div>
         <div class="box-wrapper">
@@ -299,6 +315,7 @@
           </div>
           <div class="box-counter">
             <div class="counter-value" id="box4-count">0</div>
+            <div class="counter-label">Pledges</div>
           </div>
         </div>
         <div class="box-wrapper">
@@ -307,6 +324,7 @@
           </div>
           <div class="box-counter">
             <div class="counter-value" id="box5-count">0</div>
+            <div class="counter-label">Pledges</div>
           </div>
         </div>
       </div>
@@ -340,9 +358,9 @@
   <script>
     (function () {
       var DESKTOP_W = 1284;
-      var DESKTOP_H = 514;
+      var DESKTOP_H = 544;
       var MOBILE_W  = 900;
-      var MOBILE_H  = 380;
+      var MOBILE_H  = 410;
       var MOBILE_SKY = 200;
       var MOBILE_BP = 600;
       var PADDING   = 10;
