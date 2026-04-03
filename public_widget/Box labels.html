@@ -116,7 +116,7 @@ PLATE</div>
         </div>
         <div class="box-wrapper">
           <div class="token-box" data-box="4">
-            <div class="box-label">AS YOUR
+            <div class="box-label">IN YOUR
 MEAL</div>
           </div>
         </div>
@@ -189,6 +189,24 @@ SNACK</div>
   <script type="module" src="./widget-config.js"></script>
   <script type="module">
     import { startLaunchConfigListener } from './patch-widget-listener.js';
+    import { db } from './widget-config.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    // Load box labels from Firestore (public/box-labels)
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'public', 'box-labels'));
+        if (snap.exists() && Array.isArray(snap.data().labels) && snap.data().labels.length === 5) {
+          const labels = snap.data().labels;
+          document.querySelectorAll('.box-label').forEach((el, i) => {
+            el.textContent = labels[i];
+          });
+          console.log('[JOM26] Box labels loaded from Firestore');
+        }
+      } catch (err) {
+        console.warn('[JOM26] Could not load box labels:', err);
+      }
+    })();
 
     let firstLoad = true;
     let labelsHidden = false;
