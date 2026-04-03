@@ -420,6 +420,21 @@
         </div>
       </div>
 
+      <!-- Box Labels -->
+      <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
+        <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">🏷 Box Labels</h3>
+        <p style="font-size:0.85rem; color:#757575; margin-bottom:0.75rem;">
+          These labels appear below the token collection boxes. Use a newline to split text across two lines (e.g. "IN YOUR" on line 1, "BASKET" on line 2).
+        </p>
+        <div id="box-labels-list" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.75rem;">
+          <!-- Dynamically populated -->
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <button class="btn btn-primary btn-sm" id="save-box-labels-btn">Save Box Labels</button>
+          <span id="box-labels-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
+        </div>
+      </div>
+
       <!-- Banned Words -->
       <div style="background:white; border-radius:12px; padding:1.25rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:1rem;">
         <h3 style="font-size:1rem; color:#1565C0; margin-bottom:1rem;">🚫 Banned Words (Shoutout Filter)</h3>

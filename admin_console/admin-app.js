@@ -118,6 +118,7 @@ onAuthStateChanged(auth, async (user) => {
   await loadSubmissions();
   loadCelebrationConfig();
   loadPledgeOptions();
+  loadBoxLabels();
   loadBannedWords();
   loadShareConfig();
   loadLaunchConfig();
@@ -520,6 +521,82 @@ savePledgeOptsBtn.addEventListener('click', async () => {
   savePledgeOptsBtn.disabled = false;
   savePledgeOptsBtn.textContent = 'Save Pledge Options';
   setTimeout(() => { pledgeOptStatus.textContent = ''; }, 3000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Box labels
+// ─────────────────────────────────────────────────────────────────────────────
+const boxLabelsList     = document.getElementById('box-labels-list');
+const saveBoxLabelsBtn  = document.getElementById('save-box-labels-btn');
+const boxLabelsStatus   = document.getElementById('box-labels-save-status');
+
+const DEFAULT_BOX_LABELS = [
+  'IN YOUR\nBASKET',
+  'IN YOUR\nGARDEN',
+  'ON YOUR\nPLATE',
+  'IN YOUR\nMEAL',
+  'AS YOUR\nSNACK'
+];
+
+const BOX_COLOURS = ['#ffbf42', '#c35b0f', '#39b04d', '#1d9064', '#063941'];
+
+function renderBoxLabelRow(index, value) {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
+  row.innerHTML = `
+    <span style="font-size:0.8rem; font-weight:600; color:${BOX_COLOURS[index]}; min-width:50px;">Box ${index + 1}</span>
+    <input type="text" value="${escapeHtml(value)}"
+      style="flex:1; padding:0.5rem 0.75rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit;"
+      class="box-label-input"
+      placeholder="e.g. IN YOUR\\nBASKET (use \\n for line break)">`;
+  boxLabelsList.appendChild(row);
+}
+
+async function loadBoxLabels() {
+  try {
+    const snap = await getDoc(doc(db, 'public', 'box-labels'));
+    const data = snap.exists() ? snap.data() : {};
+    const labels = Array.isArray(data.labels) && data.labels.length === 5
+      ? data.labels
+      : DEFAULT_BOX_LABELS;
+    boxLabelsList.innerHTML = '';
+    labels.forEach((l, i) => renderBoxLabelRow(i, l.replace(/\n/g, '\\n')));
+  } catch (err) {
+    console.error('Failed to load box labels:', err);
+    boxLabelsList.innerHTML = '';
+    DEFAULT_BOX_LABELS.forEach((l, i) => renderBoxLabelRow(i, l.replace(/\n/g, '\\n')));
+  }
+}
+
+saveBoxLabelsBtn.addEventListener('click', async () => {
+  saveBoxLabelsBtn.disabled = true;
+  saveBoxLabelsBtn.textContent = 'Saving…';
+
+  const inputs = boxLabelsList.querySelectorAll('.box-label-input');
+  const labels = Array.from(inputs).map(i => i.value.trim().replace(/\\n/g, '\n'));
+
+  if (labels.length !== 5 || labels.some(l => l.length === 0)) {
+    boxLabelsStatus.textContent = 'All 5 labels are required';
+    boxLabelsStatus.style.color = '#C62828';
+    saveBoxLabelsBtn.disabled = false;
+    saveBoxLabelsBtn.textContent = 'Save Box Labels';
+    setTimeout(() => { boxLabelsStatus.textContent = ''; }, 3000);
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, 'public', 'box-labels'), { labels });
+    boxLabelsStatus.textContent = '✓ Saved!';
+    boxLabelsStatus.style.color = '#2E7D32';
+  } catch (err) {
+    boxLabelsStatus.textContent = 'Error saving';
+    boxLabelsStatus.style.color = '#C62828';
+    console.error('Failed to save box labels:', err);
+  }
+
+  saveBoxLabelsBtn.disabled = false;
+  saveBoxLabelsBtn.textContent = 'Save Box Labels';
+  setTimeout(() => { boxLabelsStatus.textContent = ''; }, 3000);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
