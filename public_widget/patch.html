@@ -260,70 +260,70 @@
        JS sets this element's height to the scaled design height so the
        document always exactly matches the visible widget — no empty space.
   ─────────────────────────────────────────────────────────────────────── -->
-  <div id="patch-scale-root">
+  <div id="patch-scale-root" role="region" aria-label="Just One More Veg Pledge progress tracker — showing total pledges across five categories">
 
     <div class="boxes-container">
 
       <!-- Countdown overlay — shown during holding mode, hidden when live -->
-      <div id="holding-countdown" style="opacity:0; display:none;">
+      <div id="holding-countdown" style="opacity:0; display:none;" role="status" aria-live="polite" aria-label="Time until campaign launch">
         <div id="countdown-days">0</div>
         <div class="countdown-label">DAYS TO LAUNCH</div>
       </div>
 
-      <!-- JOM logo — backmost layer (z-index:0), sits in the sky area behind tokens -->
-      <img id="jom-logo" src="assets/Just-One-More-logo Transparent.png" alt="Just One More">
-      <img class="jom-logo-copy" data-box="1" src="assets/Just-One-More-logo Transparent.png" alt="">
-      <img class="jom-logo-copy" data-box="2" src="assets/Just-One-More-logo Transparent.png" alt="">
-      <img class="jom-logo-copy" data-box="4" src="assets/Just-One-More-logo Transparent.png" alt="">
-      <img class="jom-logo-copy" data-box="5" src="assets/Just-One-More-logo Transparent.png" alt="">
+      <!-- JOM logo — decorative backdrop (alt="" for screen readers) -->
+      <img id="jom-logo" src="assets/Just-One-More-logo Transparent.png" alt="Just One More campaign logo">
+      <img class="jom-logo-copy" data-box="1" src="assets/Just-One-More-logo Transparent.png" alt="" aria-hidden="true">
+      <img class="jom-logo-copy" data-box="2" src="assets/Just-One-More-logo Transparent.png" alt="" aria-hidden="true">
+      <img class="jom-logo-copy" data-box="4" src="assets/Just-One-More-logo Transparent.png" alt="" aria-hidden="true">
+      <img class="jom-logo-copy" data-box="5" src="assets/Just-One-More-logo Transparent.png" alt="" aria-hidden="true">
 
-      <!-- Canvas — above the boxes (z-index:2); renders falling veggie tokens -->
-      <canvas id="tokenCanvas"></canvas>
+      <!-- Canvas — decorative token-fall animation -->
+      <canvas id="tokenCanvas" aria-hidden="true"></canvas>
 
       <!-- Five token collection boxes -->
-      <div class="boxes-row">
-        <div class="box-wrapper">
+      <div class="boxes-row" role="list" aria-label="Pledge counts by category">
+        <div class="box-wrapper" role="listitem">
           <div class="token-box" data-box="1">
-            <img class="box-icon" src="assets/Box 1 - Shopping Basket.png" alt="Shopping Basket">
+            <img class="box-icon" src="assets/Box 1 - Shopping Basket.png" alt="" aria-hidden="true">
           </div>
-          <div class="box-counter">
-            <div class="counter-value" id="box1-count">0</div>
+          <div class="box-counter" aria-label="In your basket pledges">
+            <div class="counter-value" id="box1-count" aria-live="polite">0</div>
             <div class="counter-label">Pledges</div>
           </div>
         </div>
-        <div class="box-wrapper">
+        <div class="box-wrapper" role="listitem">
           <div class="token-box" data-box="2">
-            <img class="box-icon" src="assets/Box 2 - Garden.png" alt="Garden">
+            <img class="box-icon" src="assets/Box 2 - Garden.png" alt="" aria-hidden="true">
           </div>
-          <div class="box-counter">
-            <div class="counter-value" id="box2-count">0</div>
+          <div class="box-counter" aria-label="In your garden pledges">
+            <div class="counter-value" id="box2-count" aria-live="polite">0</div>
             <div class="counter-label">Pledges</div>
           </div>
         </div>
-        <div class="box-wrapper">
+        <div class="box-wrapper" role="listitem">
           <div class="token-box" data-box="3">
-            <img class="box-icon" src="assets/Box 3 - On your Plate.png" alt="On your Plate">
+            <img class="box-icon" src="assets/Box 3 - On your Plate.png" alt="" aria-hidden="true">
           </div>
-          <div class="box-counter">
-            <div class="counter-value" id="box3-count">0</div>
+          <div class="box-counter" aria-label="On your plate pledges">
+            <div class="counter-value" id="box3-count" aria-live="polite">0</div>
             <div class="counter-label">Pledges</div>
           </div>
         </div>
-        <div class="box-wrapper">
+        <div class="box-wrapper" role="listitem">
           <div class="token-box" data-box="4">
-            <img class="box-icon" src="assets/Box 4 - As your meal.png" alt="As your meal">
+            <img class="box-icon" src="assets/Box 4 - As your meal.png" alt="" aria-hidden="true">
           </div>
-          <div class="box-counter">
-            <div class="counter-value" id="box4-count">0</div>
+          <div class="box-counter" aria-label="In your meal pledges">
+            <div class="counter-value" id="box4-count" aria-live="polite">0</div>
             <div class="counter-label">Pledges</div>
           </div>
         </div>
-        <div class="box-wrapper">
+        <div class="box-wrapper" role="listitem">
           <div class="token-box" data-box="5">
-            <img class="box-icon" src="assets/Box 5 - As a Snack.png" alt="As a Snack">
+            <img class="box-icon" src="assets/Box 5 - As a Snack.png" alt="" aria-hidden="true">
           </div>
-          <div class="box-counter">
-            <div class="counter-value" id="box5-count">0</div>
+          <div class="box-counter" aria-label="As a snack pledges">
+            <div class="counter-value" id="box5-count" aria-live="polite">0</div>
             <div class="counter-label">Pledges</div>
           </div>
         </div>
