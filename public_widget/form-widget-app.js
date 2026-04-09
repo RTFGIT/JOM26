@@ -728,7 +728,8 @@ function notifyHeight() {
  * into the Veg Patch widget. Called both on submit and from the modal button.
  */
 function scrollParentToTop() {
-  try { window.parent.postMessage({ type: 'SCROLL_TO_TOP' }, '*'); } catch (e) {}
+  // Ask parent to scroll to the patch widget (falls back to top of page)
+  try { window.parent.postMessage({ type: 'SCROLL_TO_PATCH' }, '*'); } catch (e) {}
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
 }
 
