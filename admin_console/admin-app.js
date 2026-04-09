@@ -112,8 +112,26 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // Access is controlled entirely by Firebase Authentication.
-  // Add / remove admin users in Firebase Console → Authentication → Users.
+  // Client-side admin claim check — hides the dashboard from any user
+  // who doesn't have the `admin: true` custom claim. The Firestore rules
+  // still enforce this server-side; this is purely a UX improvement so
+  // unauthorised logins see a clear message instead of a broken dashboard.
+  try {
+    const tokenResult = await user.getIdTokenResult();
+    if (!tokenResult.claims.admin) {
+      loginError.textContent = 'Access denied. You do not have admin privileges.';
+      loginError.style.display = 'block';
+      await signOut(auth);
+      return;
+    }
+  } catch (err) {
+    console.error('Failed to verify admin claim:', err);
+    loginError.textContent = 'Could not verify admin access. Please try again.';
+    loginError.style.display = 'block';
+    await signOut(auth);
+    return;
+  }
+
   showDashboard(user.email);
   await loadSubmissions();
   loadCelebrationConfig();
