@@ -389,7 +389,7 @@ function downloadCSV(rows, filename) {
   }
 
   const headers = [
-    'Date', 'Name', 'Email', 'Type', 'Participants', 'Box', 'Tokens', 'Pledge Approach', 'Newsletter'
+    'Date', 'Name', 'Email', 'Type', 'Participants', 'Box', 'Tokens', 'Pledge Approach', 'Leeds Location', 'Newsletter'
   ];
 
   const csvRows = rows.map(r => {
@@ -405,6 +405,7 @@ function downloadCSV(rows, filename) {
       r.box_number       ?? '',
       r.tokens           ?? '',
       r.pledge_approach  || '',
+      r.leeds_location   || '',
       r.newsletter_opt_in ? 'Yes' : 'No',
     ].map(csvEscape).join(',');
   });
