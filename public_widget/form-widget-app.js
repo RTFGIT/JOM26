@@ -22,6 +22,9 @@ var livePledgeOptions = defaultPledgeOptions.slice();
 // Shared pledge-approach field appended to every pathway
 const PLEDGE_APPROACH_FIELD = { id: 'pledge_approach', label: 'How will you approach your pledge?', type: 'textarea', required: false };
 
+// Shared location field for org/community/other pathways
+const LEEDS_LOCATION_FIELD = { id: 'leeds_location', label: 'Where in Leeds are you based?', type: 'text', required: false };
+
 const pathwayFields = {
   individual: [
     PLEDGE_APPROACH_FIELD
@@ -43,15 +46,18 @@ const pathwayFields = {
     { id: 'org_type', label: 'Organisation Type', type: 'select', required: true,  row: 'or1',
       options: ['Business', 'Non-profit', 'Government', 'Healthcare', 'Education', 'Other'] },
     { id: 'org_size', label: 'Number of Participants', type: 'number', required: false, min: 1, max: 100 },
+    LEEDS_LOCATION_FIELD,
     PLEDGE_APPROACH_FIELD
   ],
   community: [
     { id: 'group_name', label: 'Group Name', type: 'text',   required: true, row: 'co1' },
     { id: 'group_size', label: 'Group Size', type: 'number', required: true, row: 'co1', min: 1, max: 100 },
+    LEEDS_LOCATION_FIELD,
     PLEDGE_APPROACH_FIELD
   ],
   other: [
     { id: 'description', label: 'Description', type: 'textarea', required: false },
+    LEEDS_LOCATION_FIELD,
     PLEDGE_APPROACH_FIELD
   ]
 };
@@ -475,6 +481,9 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
   // Free text pledge approach (all pathways)
   const pledgeApproach = document.getElementById('pledge_approach')?.value?.trim() || null;
 
+  // Leeds location — only captured for organisation / community / other pathways
+  const leedsLocation = document.getElementById('leeds_location')?.value?.trim() || null;
+
   const payload = {
     name: document.getElementById('name').value.trim(),
     email: document.getElementById('email').value.trim(),
@@ -485,6 +494,7 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
     childrenCount: childrenCount,
     childrenAges: childrenAges,
     pledgeApproach: pledgeApproach,
+    leedsLocation: leedsLocation,
     newsletter: document.getElementById('newsletter').checked,
     boxNumber: boxNumber,
     shoutout: document.getElementById('shoutout')?.checked || false,

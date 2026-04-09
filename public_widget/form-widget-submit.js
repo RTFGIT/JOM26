@@ -50,7 +50,7 @@ function calculateTokens(userType, participantsCount) {
 
 export async function submitPledge({
   name, email, pledge, userType, familySize, participantsCount,
-  childrenCount, childrenAges, pledgeApproach,
+  childrenCount, childrenAges, pledgeApproach, leedsLocation,
   newsletter, boxNumber, shoutout, displayName
 }) {
   // Note: duplicate email check removed — submissions are now auth-read-only,
@@ -70,6 +70,7 @@ export async function submitPledge({
     children_count:     childrenCount ? Number(childrenCount) : null,
     children_ages:      childrenAges || null,
     pledge_approach:    pledgeApproach || null,
+    leeds_location:     leedsLocation || null,
     box_number:         boxNum,
     tokens,
     newsletter_opt_in:  Boolean(newsletter),
