@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.admin == true;
+    }
+    
+    // Submission photos - allow authenticated uploads, admin management
+    match /submissions/{submissionId}/{fileName} {
+      // Allow authenticated users to upload images up to 5MB
+      allow create: if request.auth != null
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      
+      // Allow admins to read, update, delete
+      allow read, update, delete: if isAdmin();
+    }
+    
+    // Public assets - admin upload, public read
+    match /public/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

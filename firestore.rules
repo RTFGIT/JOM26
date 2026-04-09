@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper ─────────────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ── System collection — admin only ─────────────────────────────────
+    match /system/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Submissions — public create, admin read ────────────────────────
+    // Personal data (names, emails, children's ages) is protected:
+    // only admin-flagged accounts can read.
+    match /submissions/{id} {
+      allow create: if true
+        // Basic validation: required fields must be present
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email.size() < 256
+        && request.resource.data.box_number is int
+        && request.resource.data.box_number >= 1
+        && request.resource.data.box_number <= 5
+        && request.resource.data.tokens is int
+        && request.resource.data.tokens >= 1
+        && request.resource.data.tokens <= 100
+        && request.resource.data.user_type is string
+        && request.resource.data.user_type in ['individual', 'family', 'school', 'organisation', 'community', 'other']
+        && (request.resource.data.participants_count == null
+            || (request.resource.data.participants_count is int
+                && request.resource.data.participants_count >= 1
+                && request.resource.data.participants_count <= 100));
+      allow read: if isAdmin();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ── Public collection — per-document rules ─────────────────────────
+    // Everything is publicly readable; writes are locked down per document.
+
+    // Totaliser — the form's runTransaction increments counters.
+    // Values can only go up (no resets or decrements from public).
+    // The document must be pre-created in Firestore console.
+    match /public/totaliser {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        // OR public can increment (values only go up, capped at +200 per write)
+        || (request.resource.data.box1 is int
+            && request.resource.data.box1 >= resource.data.box1
+            && request.resource.data.box2 is int
+            && request.resource.data.box2 >= resource.data.box2
+            && request.resource.data.box3 is int
+            && request.resource.data.box3 >= resource.data.box3
+            && request.resource.data.box4 is int
+            && request.resource.data.box4 >= resource.data.box4
+            && request.resource.data.box5 is int
+            && request.resource.data.box5 >= resource.data.box5
+            && request.resource.data.total_tokens is int
+            && request.resource.data.total_tokens >= resource.data.total_tokens
+            && request.resource.data.submission_count is int
+            && request.resource.data.submission_count >= resource.data.submission_count
+            && request.resource.data.total_tokens - resource.data.total_tokens <= 100);
+    }
+
+    // Shoutouts — public can only append entries via arrayUnion.
+    match /public/shoutouts {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (request.resource.data.entries is list
+            && request.resource.data.entries.size() >= resource.data.entries.size());
+    }
+
+    // Launch config — public can only increment holding_interest by 1.
+    // All other fields (campaign_live, launch_date, launch_time) are admin-only.
+    match /public/launch-config {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (request.resource.data.holding_interest is int
+            && request.resource.data.holding_interest >= resource.data.holding_interest
+            && request.resource.data.holding_interest - resource.data.holding_interest <= 1
+            && request.resource.data.campaign_live == resource.data.campaign_live
+            && request.resource.data.launch_date == resource.data.launch_date
+            && request.resource.data.launch_time == resource.data.launch_time);
+    }
+
+    // Celebration config — admin only (widgets only read)
+    match /public/celebration-config {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Pledge options — admin only (widgets only read)
+    match /public/pledge-options {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Catch-all for any other public documents — read only
+    match /public/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
