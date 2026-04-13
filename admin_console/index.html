@@ -441,11 +441,23 @@
         <p style="font-size:0.85rem; color:#757575; margin-bottom:0.75rem;">
           Shoutout names containing any of these words will be blocked on submission and hidden on display. One word per line, case-insensitive.
         </p>
-        <textarea id="banned-words-input" rows="6"
-          style="width:100%; padding:0.5rem 0.75rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit; resize:vertical; margin-bottom:0.75rem;"
-          placeholder="Enter banned words, one per line..."></textarea>
+        <div style="position:relative;">
+          <textarea id="banned-words-input" rows="6"
+            style="width:100%; padding:0.5rem 0.75rem; border:2px solid #E0E0E0; border-radius:8px; font-size:0.9rem; font-family:inherit; resize:vertical; margin-bottom:0.75rem; filter:blur(5px); transition:filter 0.2s;"
+            placeholder="Enter banned words, one per line..."></textarea>
+          <div id="banned-words-overlay"
+            style="position:absolute; top:0; left:0; right:0; bottom:0.75rem; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.6); border-radius:8px; cursor:pointer;"
+            onclick="document.getElementById('banned-words-input').style.filter='none'; this.style.display='none'; document.getElementById('banned-words-reveal-btn').style.display='inline-block';">
+            <span style="background:#424242; color:white; padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem;">Click to reveal</span>
+          </div>
+        </div>
         <div style="display:flex; gap:0.75rem; align-items:center;">
           <button class="btn btn-primary btn-sm" id="save-banned-words-btn">Save Banned Words</button>
+          <button class="btn btn-outline btn-sm" id="banned-words-reveal-btn"
+            style="display:none; font-size:0.8rem; cursor:pointer;"
+            onclick="document.getElementById('banned-words-input').style.filter='blur(5px)'; document.getElementById('banned-words-overlay').style.display='flex'; this.style.display='none';">
+            Hide Words
+          </button>
           <span id="banned-words-save-status" style="font-size:0.85rem; color:#2E7D32; font-weight:500;"></span>
         </div>
       </div>
