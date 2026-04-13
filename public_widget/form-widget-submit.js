@@ -28,9 +28,26 @@ async function loadBannedWords() {
   return bannedWordsCache;
 }
 
+// Decode common leet speak substitutions to catch bypass attempts
+function decodeLeet(text) {
+  const map = {
+    '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's',
+    '7': 't', '8': 'b', '9': 'g', '@': 'a', '!': 'i',
+    '$': 's', '(': 'c', '+': 't', '|': 'l', '€': 'e',
+    '&': 'and', 'ph': 'f'
+  };
+  let result = text;
+  for (const [leet, letter] of Object.entries(map)) {
+    result = result.split(leet).join(letter);
+  }
+  return result;
+}
+
 function containsBannedWord(text, bannedWords) {
   const lower = text.toLowerCase();
-  return bannedWords.some(word => lower.includes(word));
+  const decoded = decodeLeet(lower);
+  // Check both the original text and the leet-decoded version
+  return bannedWords.some(word => lower.includes(word) || decoded.includes(word));
 }
 
 function calculateTokens(userType, participantsCount) {
