@@ -75,8 +75,20 @@
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          document.getElementById('status').textContent = 'Download started! You can close this tab.';
           document.getElementById('spinner').style.display = 'none';
+          var countdown = 10;
+          document.getElementById('status').textContent = 'Download started! This tab will close in ' + countdown + 's…';
+          var closeTimer = setInterval(function () {
+            countdown--;
+            if (countdown <= 0) {
+              clearInterval(closeTimer);
+              window.close();
+              // Fallback if window.close() is blocked by the browser
+              document.getElementById('status').textContent = 'Download complete. You can close this tab.';
+            } else {
+              document.getElementById('status').textContent = 'Download started! This tab will close in ' + countdown + 's…';
+            }
+          }, 1000);
         })
         .catch(function (err) {
           console.error('Download failed:', err);
