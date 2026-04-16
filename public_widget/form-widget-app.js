@@ -62,18 +62,6 @@ const pathwayFields = {
   ]
 };
 
-// Download resource ZIP archives per user type — served from the GitHub repo.
-// Paths are relative to the repo root on GitHub Pages.
-// When adding/removing files from a folder, re-zip the folder to update.
-const DOWNLOAD_URLS = {
-  individual:   '/JOM26/Resources_downloads/individuals.zip',
-  family:       '/JOM26/Resources_downloads/families-resources.zip',
-  school:       '/JOM26/Resources_downloads/schools-resources.zip',
-  organisation: '/JOM26/Resources_downloads/organisations-resources.zip',
-  community:    '/JOM26/Resources_downloads/community_groups-resources.zip',
-  other:        '/JOM26/Resources_downloads/other-resources.zip'
-};
-
 // Widget state
 const widgetState = {
   currentStep: 1,
@@ -120,12 +108,7 @@ function showStep(stepNumber) {
   activeStep.classList.add('active');
   activeStep.removeAttribute('aria-hidden');
 
-  // Set the download resources link based on the user type
   if (stepNumber === 4) {
-    var dlBtn = document.getElementById('download-resources-btn');
-    if (dlBtn) {
-      dlBtn.href = DOWNLOAD_URLS[widgetState.userType] || '#';
-    }
   }
 
   // Notify parent of new content height so the iframe resizes dynamically
