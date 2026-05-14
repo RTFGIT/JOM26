@@ -246,7 +246,8 @@ function getFiltered() {
     if (search) {
       const name  = (r.name  || '').toLowerCase();
       const email = (r.email || '').toLowerCase();
-      if (!name.includes(search) && !email.includes(search)) return false;
+      const org   = (r.organisation_name || r.org_name || r.school_name || r.group_name || '').toLowerCase();
+      if (!name.includes(search) && !email.includes(search) && !org.includes(search)) return false;
     }
     if (boxVal  && String(r.box_number) !== boxVal)             return false;
     if (typeVal && (r.user_type || '').toLowerCase() !== typeVal) return false;
@@ -284,6 +285,7 @@ const COLUMNS = [
   { key: 'name',              label: 'Name' },
   { key: 'email',             label: 'Email' },
   { key: 'user_type',         label: 'Type' },
+  { key: 'organisation_name', label: 'Organisation / Group' },
   { key: 'participants_count', label: 'Participants' },
   { key: 'box_number',        label: 'Box' },
   { key: 'tokens',            label: 'Tokens' },
@@ -322,11 +324,20 @@ function renderTable() {
 
     const dupeBadge = isDupe ? `<span class="badge badge-dup">DUP</span>` : '';
 
+    // Fallback chain for the organisation/group name column so historical
+    // submissions (before the dedicated org_name field was added) still show.
+    const orgDisplay = r.organisation_name
+                    || r.org_name
+                    || r.school_name
+                    || r.group_name
+                    || '—';
+
     return `<tr class="${rowClass}">
       <td style="white-space:nowrap">${date}</td>
       <td>${escapeHtml(r.name || '—')}</td>
       <td>${escapeHtml(r.email || '—')}${dupeBadge}</td>
       <td><span class="type-chip">${escapeHtml(String(r.user_type || '—'))}</span></td>
+      <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(orgDisplay)}">${escapeHtml(orgDisplay)}</td>
       <td style="text-align:center">${escapeHtml(String(r.participants_count ?? '—'))}</td>
       <td style="text-align:center"><span class="badge badge-box">Box ${escapeHtml(String(r.box_number ?? '?'))}</span></td>
       <td style="text-align:center">${escapeHtml(String(r.tokens ?? '—'))}</td>
@@ -389,23 +400,37 @@ function downloadCSV(rows, filename) {
   }
 
   const headers = [
-    'Date', 'Name', 'Email', 'Type', 'Participants', 'Box', 'Tokens', 'Pledge Approach', 'Leeds Location', 'Newsletter'
+    'Date', 'Name', 'Email', 'Type', 'Organisation / Group',
+    'School Name', 'Class / Year', 'Org Name', 'Org Type', 'Group Name', 'Description',
+    'Participants', 'Box', 'Tokens', 'Pledge Approach', 'Leeds Location', 'Newsletter'
   ];
 
   const csvRows = rows.map(r => {
     const date = r.created_at?.seconds
       ? new Date(r.created_at.seconds * 1000).toISOString()
       : '';
+    const orgDisplay = r.organisation_name
+                    || r.org_name
+                    || r.school_name
+                    || r.group_name
+                    || '';
     return [
       date,
-      r.name             || '',
-      r.email            || '',
-      r.user_type        || '',
+      r.name              || '',
+      r.email             || '',
+      r.user_type         || '',
+      orgDisplay,
+      r.school_name       || '',
+      r.class_name        || '',
+      r.org_name          || '',
+      r.org_type          || '',
+      r.group_name        || '',
+      r.description       || '',
       r.participants_count ?? '',
-      r.box_number       ?? '',
-      r.tokens           ?? '',
-      r.pledge_approach  || '',
-      r.leeds_location   || '',
+      r.box_number        ?? '',
+      r.tokens            ?? '',
+      r.pledge_approach   || '',
+      r.leeds_location    || '',
       r.newsletter_opt_in ? 'Yes' : 'No',
     ].map(csvEscape).join(',');
   });
