@@ -406,9 +406,14 @@ function downloadCSV(rows, filename) {
   ];
 
   const csvRows = rows.map(r => {
-    const date = r.created_at?.seconds
-      ? new Date(r.created_at.seconds * 1000).toISOString()
-      : '';
+    let date = '';
+    if (r.created_at?.seconds) {
+      const d = new Date(r.created_at.seconds * 1000);
+      // Format as "YYYY-MM-DD HH:MM:SS" — universally Excel-friendly, no T/Z
+      const pad = (n) => String(n).padStart(2, '0');
+      date = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+           + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
     const orgDisplay = r.organisation_name
                     || r.org_name
                     || r.school_name
