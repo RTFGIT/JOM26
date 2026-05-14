@@ -68,6 +68,7 @@ function calculateTokens(userType, participantsCount) {
 export async function submitPledge({
   name, email, pledge, userType, familySize, participantsCount,
   childrenCount, childrenAges, pledgeApproach, leedsLocation,
+  schoolName, className, orgName, orgType, groupName, description,
   newsletter, boxNumber, shoutout, displayName
 }) {
   // Note: duplicate email check removed — submissions are now auth-read-only,
@@ -76,6 +77,11 @@ export async function submitPledge({
 
   const tokens = calculateTokens(userType, participantsCount || familySize);
   const boxNum = parseInt(boxNumber) || 1;
+
+  // Choose a single "organisation name" field that works across pathways.
+  // Falls back to displayName (which contains school/org/group name) so admin
+  // table always has a column to show.
+  const organisationName = orgName || schoolName || groupName || displayName || null;
 
   // 1) Write submission document
   await addDoc(collection(db, 'submissions'), {
@@ -88,6 +94,13 @@ export async function submitPledge({
     children_ages:      childrenAges || null,
     pledge_approach:    pledgeApproach || null,
     leeds_location:     leedsLocation || null,
+    organisation_name:  organisationName,
+    school_name:        schoolName || null,
+    class_name:         className || null,
+    org_name:           orgName || null,
+    org_type:           orgType || null,
+    group_name:         groupName || null,
+    description:        description || null,
     box_number:         boxNum,
     tokens,
     newsletter_opt_in:  Boolean(newsletter),

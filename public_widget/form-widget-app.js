@@ -467,6 +467,14 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
   // Leeds location — only captured for organisation / community / other pathways
   const leedsLocation = document.getElementById('leeds_location')?.value?.trim() || null;
 
+  // Pathway-specific extra fields (collected but were not being saved before)
+  const schoolName  = document.getElementById('school_name')?.value?.trim()  || null;
+  const className   = document.getElementById('class_name')?.value?.trim()   || null;
+  const orgName     = document.getElementById('org_name')?.value?.trim()     || null;
+  const orgType     = document.getElementById('org_type')?.value?.trim()     || null;
+  const groupName   = document.getElementById('group_name')?.value?.trim()   || null;
+  const description = document.getElementById('description')?.value?.trim() || null;
+
   const payload = {
     name: document.getElementById('name').value.trim(),
     email: document.getElementById('email').value.trim(),
@@ -478,6 +486,12 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
     childrenAges: childrenAges,
     pledgeApproach: pledgeApproach,
     leedsLocation: leedsLocation,
+    schoolName: schoolName,
+    className: className,
+    orgName: orgName,
+    orgType: orgType,
+    groupName: groupName,
+    description: description,
     newsletter: document.getElementById('newsletter').checked,
     boxNumber: boxNumber,
     shoutout: document.getElementById('shoutout')?.checked || false,
