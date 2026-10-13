@@ -511,9 +511,10 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
       const msg = {
         type: 'PLEDGE_SUBMITTED',
         tokens: tokens,
-        boxNumber: boxNumber,
-        data: payload
+        boxNumber: boxNumber
       };
+      // Counts only. Anything posted here can be read by every script on the
+      // host page, so the pledge itself (name, email, ages) stays in Firestore.
 
       // Send to parent page (which forwards to patch iframe)
       if (window.parent !== window) {
@@ -539,16 +540,14 @@ document.getElementById('pledge-form').addEventListener('submit', async (e) => {
       window.parent.postMessage({
         type: 'PLEDGE_SUBMITTED',
         tokens: tokens,
-        boxNumber: boxNumber,
-        data: payload
+        boxNumber: boxNumber
       }, '*');
     }
     
     window.postMessage({
       type: 'PLEDGE_SUBMITTED',
       tokens: tokens,
-      boxNumber: boxNumber,
-      data: payload
+      boxNumber: boxNumber
     }, '*');
   }
   
